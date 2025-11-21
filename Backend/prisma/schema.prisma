@@ -1,0 +1,18 @@
+generator client {
+  provider   = "prisma-client"
+  engineType = "client"
+  output     = "../generated/prisma"
+}
+
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  content   String
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
