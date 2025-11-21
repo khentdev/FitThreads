@@ -1,0 +1,65 @@
+name: fitThreadsDev
+
+services:
+  fit_threads_db:
+    image: postgres:18.1
+    restart: always
+    environment:
+      - POSTGRES_DB=fit_threads_dev
+      - POSTGRES_USER=khentDev
+      - POSTGRES_PASSWORD=prisma
+    ports:
+      - "5432:5432"
+    networks:
+      - prisma-dev-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U khentDev -d fit_threads_dev" ]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    volumes:
+      - postgres_data_fit_threads_dev:/var/lib/postgresql
+    command: postgres -c listen_addresses=*
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+  server:
+    depends_on:
+      fit_threads_db:
+        condition: service_healthy
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://khentDev:prisma@fit_threads_db:5432/fit_threads_dev?schema=public
+    networks:
+      - prisma-dev-network
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /usr/src/app/src
+        - action: sync
+          path: ./prisma
+          target: /usr/src/app/prisma
+        - action: sync
+          path: ./tsconfig.json
+          target: /usr/src/app/tsconfig.json
+        - action: rebuild
+          path: ./package.json
+        - action: rebuild
+          path: ./Dockerfile.dev
+
+networks:
+  prisma-dev-network:
+volumes:
+  postgres_data_fit_threads_dev:
