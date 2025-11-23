@@ -7,7 +7,9 @@
     "dev": "nodemon --watch src --exec tsx src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "dotenv -e .env.test -- npx prisma db push --accept-data-loss && dotenv -e .env.test -- vitest run",
+    "db:test:up": "docker compose -f compose.test.yaml up -d",
+    "db:test:down": "docker compose -f compose.test.yaml down",
     "seed": "tsx prisma/seed/seed.ts"
   },
   "keywords": [],
@@ -20,16 +22,21 @@
     "@prisma/client": "^7.0.0",
     "@upstash/redis": "^1.35.6",
     "hono": "^4.10.6",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "pino": "^10.1.0",
+    "pino-pretty": "^13.1.2"
   },
   "devDependencies": {
     "@types/node": "^24.10.1",
+    "@types/pino": "^7.0.4",
     "dotenv": "^17.2.3",
+    "dotenv-cli": "^11.0.0",
     "nodemon": "^3.1.11",
     "prisma": "^7.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.13"
   },
   "prisma": {
     "seed": "tsx prisma/seed/seed.ts"

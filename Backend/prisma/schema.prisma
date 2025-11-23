@@ -4,15 +4,109 @@ generator client {
   output     = "../generated/prisma"
 }
 
-
 datasource db {
   provider = "postgresql"
 }
 
-model Post {
-  id        String   @id @default(uuid())
-  content   String
-  likes     Int      @default(0)
+model User {
+  id             String     @id @default(uuid()) @db.Uuid()
+  username       String
+  email          String
+  hashedPassword String
+  bio            String?
+  isAdmin        Boolean    @default(false)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  sessions       Session[]
+  posts          Post[]
+  likes          Like[]
+  favorites      Favorite[]
+
+  @@unique([username])
+  @@unique([email])
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(uuid()) @db.Uuid()
+  userId    String   @db.Uuid()
+  token     String   @unique
+  userAgent String?
+  ip        String?
+  expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, token])
+  @@index([userId], map: "idx_session_tokens_user_id")
+  @@index([expiresAt], map: "idx_session_tokens_expires_at")
+  @@map("sessions")
+}
+
+// For old session token to cleanup
+model TokenCleanupQueue {
+  id          String   @id @default(uuid()) @db.Uuid()
+  userId      String   @db.Uuid()
+  hashedToken String
+  cleanupAt   DateTime @default(dbgenerated("(now() + '00:15:00'::interval)"))
+  createdAt   DateTime @default(now())
+
+  @@map("token_cleanup_queue")
+}
+
+model Post {
+  id        String     @id @default(uuid()) @db.Uuid()
+  authorId  String     @db.Uuid()
+  title     String
+  content   String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+  users     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  favorites Favorite[]
+  postTags  PostTag[]
+  likes     Like[]
+
+  @@index([createdAt(desc)])
+  @@index([authorId], map: "idx_posts_author_id")
+  @@map("posts")
+}
+
+model Tag {
+  id    Int       @id @default(autoincrement())
+  name  String    @unique
+  posts PostTag[]
+
+  @@map("tags")
+}
+
+model PostTag {
+  postId String @db.Uuid()
+  tagId  Int
+
+  posts Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tags  Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("post_tags")
+}
+
+model Like {
+  userId    String   @db.Uuid()
+  postId    String   @db.Uuid()
+  createdAt DateTime @default(now())
+  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+}
+
+model Favorite {
+  postId    String   @db.Uuid()
+  userId    String   @db.Uuid()
+  createdAt DateTime @default(now())
+  posts     Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  users     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
 }
