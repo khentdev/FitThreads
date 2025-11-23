@@ -1,0 +1,26 @@
+name: fitThreadsTest
+
+services:
+  fit_threads_test_db:
+    image: postgres:18.1
+    restart: always
+    environment:
+      - POSTGRES_DB=fit_threads_test
+      - POSTGRES_USER=khentTest
+      - POSTGRES_PASSWORD=test_password
+    ports:
+      - "5433:5432"
+    networks:
+      - prisma-test-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U khentTest -d fit_threads_test" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 2s
+    #Temporary data for faster tests
+    tmpfs:
+      - /var/lib/postgresql
+
+networks:
+  prisma-test-network:

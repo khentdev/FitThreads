@@ -17,15 +17,19 @@ Frontend/dist/
 Frontend/coverage/
 Frontend/.env.local
 Frontend/.env.*.local
+Frontend/.env.test
+Frontend/.env.development
+Frontend/.env.production
 
 # Backend (Hono/Prisma)
 Backend/dist/
 Backend/.env
+Backend/.env.local
+Backend/.env.test
 Backend/.env.development
 Backend/.env.production
 Backend/prisma/migrations/*_test/
-*.sqlite
-*.sqlite-journal
+
 
 # Monorepo
 dist/
