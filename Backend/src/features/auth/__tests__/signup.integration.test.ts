@@ -13,8 +13,8 @@ describe("Signup Integration Tests", () => {
     const redis = getRedisClient()
 
     const testUser = {
-        username: "test_user123",
-        email: "test_user123@example.com",
+        username: "test_user19",
+        email: "testuser19@example.com",
         password: "password123"
     }
 
@@ -103,7 +103,7 @@ describe("Signup Integration Tests", () => {
             expect(response.status).toBe(409)
             const json = await response.json() as { error: { code: string, message: string } }
             expect(json.error.code).toBe("AUTH_USERNAME_ALREADY_TAKEN")
-            expect(json.error.message).toBe("Someone already has this username.")
+            expect(json.error.message).toBe("This username is already taken. Try a different one.")
             console.log("Test Passed.")
 
         })
@@ -113,7 +113,7 @@ describe("Signup Integration Tests", () => {
 
             await prisma.user.create({
                 data: {
-                    username: testUser.username,
+                    username: "jakepaul123",
                     email: testUser.email,
                     hashedPassword: testUser.password,
                     emailVerified: false
@@ -126,16 +126,15 @@ describe("Signup Integration Tests", () => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    username: "Different username",
+                    username: testUser.username,
                     email: testUser.email,
                     password: "Different password"
                 }),
             });
-
             expect(response.status).toBe(409)
             const json = await response.json() as { error: { code: string, message: string } }
             expect(json.error.code).toBe("AUTH_USER_ALREADY_EXISTS")
-            expect(json.error.message).toBe("User with this account already exists.")
+            expect(json.error.message).toBe("An account with this email already exists. Try logging in instead.")
             console.log("Test Passed.")
         })
     })
@@ -186,7 +185,7 @@ describe("Signup Integration Tests", () => {
             console.log("Cookies set:", cookies.length);
             expect(cookies.length).toBeGreaterThan(0)
 
-            const refreshCookie = cookies.find(c => c.includes("refreshToken"))
+            const refreshCookie = cookies.find(c => c.includes("sid"))
             const csrfCookie = cookies.find(c => c.includes("csrfToken"))
 
             expect(refreshCookie).toBeTruthy()
@@ -223,7 +222,7 @@ describe("Signup Integration Tests", () => {
             expect(response.status).toBe(401)
             const json = await response.json() as { error: { code: string, message: string } }
             console.log("Response body:", json);
-            expect(json.error.code).toBe("AUTH_OTP_EXPIRED")
+            expect(json.error.code).toBe("AUTH_OTP_INVALID_OR_EXPIRED")
 
             console.log("Correctly rejected invalid OTP");
         })
