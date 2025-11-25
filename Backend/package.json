@@ -21,12 +21,15 @@
     "@prisma/adapter-pg": "^7.0.0",
     "@prisma/client": "^7.0.0",
     "@upstash/redis": "^1.35.6",
+    "bcrypt": "^6.0.0",
     "hono": "^4.10.6",
     "pg": "^8.16.3",
     "pino": "^10.1.0",
-    "pino-pretty": "^13.1.2"
+    "pino-pretty": "^13.1.2",
+    "resend": "^6.5.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^24.10.1",
     "@types/pino": "^7.0.4",
     "dotenv": "^17.2.3",
