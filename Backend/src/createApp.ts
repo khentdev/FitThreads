@@ -3,6 +3,7 @@ import { globalErrorHandler } from "./middleware/globalErrorHandler.js";
 import { cors } from "hono/cors";
 import { getAllowedOrigins } from "./lib/getAllowedOrigins.js";
 import { secureHeaders } from "hono/secure-headers";
+import { registerRoute } from "./features/routes/index.js";
 
 export const createApp = () => {
     const app = new Hono();
@@ -42,6 +43,9 @@ export const createApp = () => {
             strictTransportSecurity: "max-age=31536000; includeSubDomains; preload",
         })
     );
+
+    registerRoute(app)
+
     app.notFound((c) => c.json({ error: { message: 'Route not found', code: 'NOT_FOUND' } }, 404));
     return app;
 };

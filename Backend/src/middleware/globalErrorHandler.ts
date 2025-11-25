@@ -31,7 +31,6 @@ export const globalErrorHandler = (err: Error, c: Context) => {
                 code: err.code,
                 field: err.field,
                 data: err.data,
-                name: err.name
             }
         }, err.status)
     }
