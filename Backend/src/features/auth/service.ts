@@ -1,7 +1,7 @@
 import { prisma } from "../../../prisma/prismaConfig.js";
 import bcrypt from "bcrypt";
 import { AppError } from "../../errors/customError.js";
-import { SendOTPParams, VerifyOTPAndCreateAccountParams } from "./types.js";
+import { LoginParams, SendOTPParams, VerifyEmailAndCreateSessionParams } from "./types.js";
 import { storeToken } from "../session/data.js";
 import { generateTokens } from "../session/tokens.js";
 import { hashData } from "../../lib/hash.js";
@@ -12,6 +12,36 @@ import { getRedisClient } from "../../configs/redis.js";
 import { sendEmail } from "../../configs/resend.js";
 import { env } from "../../configs/env.js";
 import logger from "../../lib/logger.js";
+
+const generateAndSendOTP = async (userId: string, email: string) => {
+    const otp = generateOTP(6);
+    const redis = getRedisClient();
+    const redisKey = RedisKeys.signupOTP(otp);
+
+    try {
+        await redis.setex(redisKey, env.OTP_EXPIRY_SECONDS, userId);
+        logger.info({ email, redisKey, userId }, "OTP stored in Redis with userId");
+    } catch (error) {
+        logger.error({ error, email }, "Failed to store OTP in Redis");
+        throw new AppError("AUTH_OTP_SEND_FAILED", { field: "email" });
+    }
+
+    const template = emailTemplates.signupOTP(otp);
+    const emailResult = await sendEmail({
+        from: env.EMAIL_FROM,
+        to: email,
+        subject: template.subject,
+        html: template.html,
+        text: template.text,
+    });
+
+    if (!emailResult.success) {
+        await redis.del(redisKey);
+        logger.error({ email, error: emailResult.error }, "Failed to send OTP email");
+        throw new AppError("AUTH_OTP_SEND_FAILED", { field: "email" });
+    }
+    logger.info({ email, messageId: emailResult.messageId }, "OTP email sent successfully");
+};
 
 export const sendAccountVerificationOTPService = async ({ username, email, password }: SendOTPParams): Promise<void> => {
 
@@ -42,41 +72,19 @@ export const sendAccountVerificationOTPService = async ({ username, email, passw
         throw new AppError("AUTH_ACCOUNT_CREATION_FAILED", { field: "create_account" });
     }
 
-    const otp = generateOTP(6);
-    const redis = getRedisClient();
-    const redisKey = RedisKeys.signupOTP(otp);
-
     try {
-        await redis.setex(redisKey, env.OTP_EXPIRY_SECONDS, userId);
-        logger.info({ email, redisKey, userId }, "OTP stored in Redis with userId");
+        await generateAndSendOTP(userId, email);
     } catch (error) {
         await prisma.user.delete({ where: { id: userId } });
-        logger.error({ error, email }, "Failed to store OTP in Redis, rolled back user creation");
-        throw new AppError("AUTH_OTP_SEND_FAILED", { field: "email" });
+        logger.error({ error, email }, "Failed to send OTP, rolled back user creation");
+        throw error;
     }
-
-    const template = emailTemplates.signupOTP(otp);
-    const emailResult = await sendEmail({
-        from: env.EMAIL_FROM,
-        to: email,
-        subject: template.subject,
-        html: template.html,
-        text: template.text,
-    });
-
-    if (!emailResult.success) {
-        await redis.del(redisKey);
-        await prisma.user.delete({ where: { id: userId } });
-        logger.error({ email, error: emailResult.error }, "Failed to send OTP email, rolled back user creation");
-        throw new AppError("AUTH_OTP_SEND_FAILED", { field: "email" });
-    }
-    logger.info({ email, messageId: emailResult.messageId }, "OTP email sent successfully");
 };
 
-export const verifyOTPAndCreateAccountService = async ({
+export const verifyEmailAndCreateSessionService = async ({
     deviceId,
     otp
-}: VerifyOTPAndCreateAccountParams) => {
+}: VerifyEmailAndCreateSessionParams) => {
 
     const redis = getRedisClient();
     const redisKey = RedisKeys.signupOTP(otp);
@@ -128,3 +136,51 @@ export const verifyOTPAndCreateAccountService = async ({
         throw new AppError("AUTH_ACCOUNT_CREATION_FAILED", { field: "create_account" });
     }
 };
+
+export const loginService = async ({
+    username,
+    password, deviceId
+}: LoginParams) => {
+
+    const user = await prisma.user.findUnique({ where: { username }, select: { id: true, username: true, email: true, hashedPassword: true, emailVerified: true } })
+    if (!user) throw new AppError("AUTH_INVALID_CREDENTIALS", { field: "username-password" })
+
+    const correctPassword = await bcrypt.compare(password, user.hashedPassword)
+    if (!correctPassword) throw new AppError("AUTH_INVALID_CREDENTIALS", { field: "username-password" })
+
+    if (!user.emailVerified) {
+        await generateAndSendOTP(user.id, user.email);
+        throw new AppError("AUTH_USER_NOT_VERIFIED", { field: "email", data: { email: user.email } });
+    }
+
+    try {
+        const { accessToken, refreshToken, csrfToken } = await prisma.$transaction(async (tx) => {
+            const { accessToken: token, refreshToken: sid, csrfToken: csrf, refreshTokenExpiry } = await generateTokens({
+                deviceId,
+                userId: user.id
+            });
+            const hashedToken = hashData(sid);
+            await storeToken({
+                token: hashedToken,
+                userId: user.id,
+                expiresAt: new Date(refreshTokenExpiry * 1000)
+            }, tx);
+            return { accessToken: token, refreshToken: sid, csrfToken: csrf };
+        });
+
+        logger.info({ email: user.email, userId: user.id }, "User logged in successfully");
+        return { accessToken, refreshToken, csrfToken, user };
+    } catch (err) {
+        logger.error({ error: err, userId: user.id }, "Failed to login");
+        throw new AppError("AUTH_LOGIN_FAILED", { field: "login" });
+    }
+}
+
+export const resendVerificationOTPService = async ({ email }: { email: string }) => {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new AppError("AUTH_USER_NOT_FOUND", { field: "email" });
+    if (user.emailVerified) throw new AppError("AUTH_USER_ALREADY_VERIFIED", { field: "email" });
+
+    await generateAndSendOTP(user.id, user.email);
+};
+

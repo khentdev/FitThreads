@@ -15,15 +15,42 @@ export type SendOTPParamsVariables = {
     sendOTPParams: SendOTPParams;
 }
 
-export type VerifyOTPAndCreateAccountRequestBody = {
+export type VerifyEmailAndCreateSessionRequestBody = {
     otp: unknown;
 }
 
-export type VerifyOTPAndCreateAccountParams = {
+export type VerifyEmailAndCreateSessionParams = {
     deviceId: string;
     otp: string;
 }
 
-export type VerifyOTPAndCreateAccountParamsVariables = {
-    verifyOTPParams: VerifyOTPAndCreateAccountParams;
+export type VerifyEmailAndCreateSessionParamsVariables = {
+    verifyOTPParams: VerifyEmailAndCreateSessionParams;
+}
+
+export type LoginRequestBody = {
+    username: unknown;
+    password: unknown;
+}
+
+export type LoginParams = {
+    username: string;
+    password: string;
+    deviceId: string
+}
+
+export type LoginParamsVariables = {
+    loginParams: LoginParams;
+}
+
+export type ResendOTPRequestBody = {
+    email: unknown;
+}
+
+export type ResendOTPParams = {
+    email: string;
+}
+
+export type ResendOTPParamsVariables = {
+    resendOTPParams: ResendOTPParams;
 }
