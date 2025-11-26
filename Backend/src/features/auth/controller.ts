@@ -1,11 +1,15 @@
 import { Context } from "hono";
 import {
+    loginService,
     sendAccountVerificationOTPService,
-    verifyOTPAndCreateAccountService
+    verifyEmailAndCreateSessionService,
+    resendVerificationOTPService,
 } from "./service.js";
 import {
+    LoginParamsVariables,
     SendOTPParamsVariables,
-    VerifyOTPAndCreateAccountParamsVariables
+    VerifyEmailAndCreateSessionParamsVariables,
+    ResendOTPParamsVariables,
 } from "./types.js";
 import { setAuthCookie, setCSRFCookie } from "./cookie.config.js";
 import { tokenExpiry } from "../../configs/env.js";
@@ -17,7 +21,7 @@ export const deleteUserByEmailController = async (
 ) => {
     const { email } = await c.req.json<{ email: string }>()
     const exist = await prisma.user.findUnique({ where: { email } })
-    if (exist) return c.json({ error: "User not found or already deleted" }, 404)
+    if (!exist) return c.json({ error: "User not found or already deleted" }, 404)
     try {
         await prisma.user.delete({ where: { email } })
         return c.json({
@@ -38,11 +42,11 @@ export const sendAccountVerificationOTPController = async (
     }, 200);
 };
 
-export const verifyOTPAndCreateAccountController = async (
-    c: Context<{ Variables: VerifyOTPAndCreateAccountParamsVariables }>
+export const verifyEmailAndCreateSessionController = async (
+    c: Context<{ Variables: VerifyEmailAndCreateSessionParamsVariables }>
 ) => {
     const { deviceId, otp } = c.get("verifyOTPParams");
-    const { accessToken, csrfToken, refreshToken, user } = await verifyOTPAndCreateAccountService({
+    const { accessToken, csrfToken, refreshToken, user } = await verifyEmailAndCreateSessionService({
         deviceId,
         otp
     });
@@ -67,4 +71,46 @@ export const verifyOTPAndCreateAccountController = async (
             username: user.username
         }
     }, 201);
+};
+
+export const loginController = async (
+    c: Context<{ Variables: LoginParamsVariables }>
+) => {
+    const { username, password, deviceId } = c.get("loginParams");
+    const { accessToken, csrfToken, refreshToken, user } = await loginService({
+        username,
+        password,
+        deviceId
+    });
+    setAuthCookie({
+        c,
+        name: "sid",
+        value: refreshToken,
+        options: { maxAge: tokenExpiry().refreshTokenMaxAge }
+    });
+    setCSRFCookie({
+        c,
+        name: "csrfToken",
+        value: csrfToken,
+        options: { maxAge: tokenExpiry().csrfTokenMaxAge }
+    });
+    return c.json({
+        message: "Welcome back!",
+        accessToken,
+        user: {
+            emailVerified: user.emailVerified,
+            email: user.email,
+            username: user.username
+        }
+    }, 200);
+};
+
+export const resendVerificationOTPController = async (
+    c: Context<{ Variables: ResendOTPParamsVariables }>
+) => {
+    const { email } = c.get("resendOTPParams");
+    await resendVerificationOTPService({ email });
+    return c.json({
+        message: "Verification code sent to your email. Please check your inbox."
+    }, 200);
 };

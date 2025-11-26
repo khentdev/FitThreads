@@ -4,8 +4,10 @@ import { notEmpty, isValidEmail, isMinLength, isValidDeviceFingerprint, isValidU
 import { hashData } from "../../lib/hash.js";
 import { isValidOTPFormat } from "../../lib/otp.js";
 import type {
+    LoginRequestBody,
     SendOTPRequestBody,
-    VerifyOTPAndCreateAccountRequestBody
+    VerifyEmailAndCreateSessionRequestBody,
+    ResendOTPRequestBody,
 } from "./types.js";
 
 
@@ -36,7 +38,7 @@ export const validateSendOTP = async (c: Context, next: Next) => {
 
 
 export const validateVerifyOTPAndCreateAccount = async (c: Context, next: Next) => {
-    const { otp } = await c.req.json<VerifyOTPAndCreateAccountRequestBody>();
+    const { otp } = await c.req.json<VerifyEmailAndCreateSessionRequestBody>();
     const fingerprint = c.req.header("X-Fingerprint");
 
     if (!isValidOTPFormat(otp, 6))
@@ -51,5 +53,45 @@ export const validateVerifyOTPAndCreateAccount = async (c: Context, next: Next) 
     };
 
     c.set("verifyOTPParams", payload);
+    await next();
+};
+
+export const validateLoginAccount = async (c: Context, next: Next) => {
+    const { username, password } = await c.req.json<LoginRequestBody>();
+    const fingerprint = c.req.header("X-Fingerprint");
+
+    if (!notEmpty(username))
+        throw new AppError("AUTH_USERNAME_REQUIRED", { field: "username" });
+
+    if (!notEmpty(password))
+        throw new AppError("AUTH_PASSWORD_REQUIRED", { field: "password" });
+
+    if (!isMinLength(password, 8))
+        throw new AppError("AUTH_PASSWORD_MIN_LENGTH", { field: "password" });
+
+    if (!isValidDeviceFingerprint(fingerprint))
+        throw new AppError("AUTH_INVALID_DEVICE_FINGERPRINT", { field: "device_fingerprint" });
+
+    const payload = {
+        username: (username as string).trim().toLowerCase(),
+        password: (password as string).trim(),
+        deviceId: hashData(fingerprint as string)
+    };
+
+    c.set("loginParams", payload);
+    await next()
+}
+
+export const validateResendOTP = async (c: Context, next: Next) => {
+    const { email } = await c.req.json<ResendOTPRequestBody>();
+
+    if (!isValidEmail(email))
+        throw new AppError("AUTH_EMAIL_REQUIRED", { field: "email" });
+
+    const payload = {
+        email: (email as string).trim().toLowerCase()
+    };
+
+    c.set("resendOTPParams", payload);
     await next();
 };

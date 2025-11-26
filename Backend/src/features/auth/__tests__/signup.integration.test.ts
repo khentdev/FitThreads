@@ -76,7 +76,7 @@ describe("Signup Integration Tests", () => {
             console.log("Test Passed.")
         })
 
-        it("Should reject duplicate username and email", async () => {
+        it("Should reject duplicate username", async () => {
             console.log("Testing duplicate username...")
 
             await prisma.user.create({
