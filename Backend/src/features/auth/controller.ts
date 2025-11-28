@@ -35,10 +35,11 @@ export const deleteUserByEmailController = async (
 export const sendAccountVerificationOTPController = async (
     c: Context<{ Variables: SendOTPParamsVariables }>
 ) => {
-    const { username, email, password } = c.get("sendOTPParams");
-    await sendAccountVerificationOTPService({ username, email, password });
+    const { username, email: emailParam, password } = c.get("sendOTPParams");
+    const res = await sendAccountVerificationOTPService({ username, email: emailParam, password });
     return c.json({
-        message: "Verification code sent to your email. Please check your inbox."
+        message: "Verification code sent to your email. Please check your inbox.",
+        email: res.email
     }, 200);
 };
 
