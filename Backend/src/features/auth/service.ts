@@ -43,7 +43,7 @@ const generateAndSendOTP = async (userId: string, email: string) => {
     logger.info({ email, messageId: emailResult.messageId }, "OTP email sent successfully");
 };
 
-export const sendAccountVerificationOTPService = async ({ username, email, password }: SendOTPParams): Promise<void> => {
+export const sendAccountVerificationOTPService = async ({ username, email, password }: SendOTPParams) => {
 
     const existingUsername = await prisma.user.findUnique({ where: { username } });
     if (existingUsername)
@@ -74,6 +74,7 @@ export const sendAccountVerificationOTPService = async ({ username, email, passw
 
     try {
         await generateAndSendOTP(userId, email);
+        return { email }
     } catch (error) {
         await prisma.user.delete({ where: { id: userId } });
         logger.error({ error, email }, "Failed to send OTP, rolled back user creation");
