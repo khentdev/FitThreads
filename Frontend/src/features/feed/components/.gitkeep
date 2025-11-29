@@ -1,0 +1,9 @@
+# Feed Components
+
+Place feed-specific components here.
+
+Examples:
+- PostCard.vue
+- PostList.vue
+- CreatePost.vue
+- TagList.vue

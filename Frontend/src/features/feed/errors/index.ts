@@ -1,0 +1,6 @@
+export const FEED_ERROR_POST_NOT_FOUND = 'FEED_ERROR_POST_NOT_FOUND'
+export const FEED_ERROR_FAILED_TO_LOAD = 'FEED_ERROR_FAILED_TO_LOAD'
+
+export type FeedErrorType =
+    | typeof FEED_ERROR_POST_NOT_FOUND
+    | typeof FEED_ERROR_FAILED_TO_LOAD

@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+:root {
+  /* Light Mode - Semantic Color Palette */
+  --color-bg-primary: #fff3e5;
+  --color-bg-base: #f4f7f8; /* Usage: Backgrounds; Pairs with: Step 11, 12 text */
+  --color-bg-subtle: #ecf4f7; /* Usage: Backgrounds; Pairs with: Step 11, 12 text */
+  --color-component-base: #d8eff8; /* Usage: Interactive Components; Pairs with: Steps 11 labels, 12 text */
+  --color-component-hover: #c5e8f6; /* Usage: Interactive Components; Pairs with: Steps 11, 12 labels */
+  --color-component-active: #b0dff1; /* Usage: Interactive Components; Pairs with: Step 12 labels */
+  --color-border-subtle: #99d3e9; /* Usage: Borders and seperators; Pairs with: Steps 1-5 backgrounds */
+  --color-border-default: #7ac3de; /* Usage: Borders and seperators; Pairs with: Steps 1-5 backgrounds */
+  --color-border-focus: #3eadd1; /* Usage: Borders, focus rings; Pairs with: Steps 1-5 backgrounds */
+  --color-solid-primary: #19a7ce; /* Usage: Solid Backgrounds, buttons; Pairs with: White text */
+  --color-solid-hover: #149abf; /* Usage: Solid Backgrounds, buttons; Pairs with: White text */
+  --color-text-secondary: #007497; /* Usage: Secondary text, links; Pairs with: Background colors */
+  --color-text-primary: #0e3c4b; /* Usage: High-contrast text; Pairs with: Background colors */
+
+  /* Light Mode - Semantic Gray Palette */
+  --color-surface-app: #fff3e5;
+  --color-surface-card: #ffefe1;
+  --color-surface-elevated: #f5e6d8;
+  --color-surface-hover: #eaded4;
+  --color-surface-active: #e5d6c8;
+  --color-border-muted: #d5cfca;
+  --color-border-subtle-secondary: #d0c3b8;
+  --color-border-strong: #beafa2;
+  --color-text-disabled: #8e8378;
+  --color-text-tertiary: #85786c;
+  --color-text-muted: #645b53;
+  --color-text-default: #221f1d;
+}
+
+.dark {
+  /* Dark Mode - Semantic Color Palette */
+  --color-bg-primary: #0f1215;
+  --color-bg-base: #071418;
+  --color-bg-subtle: #0d1b1f;
+  --color-component-base: #002c38;
+  --color-component-hover: #00394a;
+  --color-component-active: #00465b;
+  --color-border-subtle: #00556b;
+  --color-border-default: #006982;
+  --color-border-focus: #0082a1;
+  --color-solid-primary: #2bc9f0;
+  --color-solid-hover: #0fbee5;
+  --color-text-secondary: #31ccf3;
+  --color-text-primary: #b1ecff;
+
+  /* Dark Mode - Semantic Gray Palette */
+  --color-surface-app: #101215;
+  --color-surface-card: #17191c;
+  --color-surface-elevated: #202327;
+  --color-surface-hover: #262a30;
+  --color-surface-active: #2c3138;
+  --color-border-muted: #343a42;
+  --color-border-subtle-secondary: #414852;
+  --color-border-strong: #586170;
+  --color-text-disabled: #656e7d;
+  --color-text-tertiary: #737c8a;
+  --color-text-muted: #adb4bf;
+  --color-text-default: #eceef1;
+}
+
+@theme {
+  --color-bg-primary: var(--color-bg-primary);
+  --color-bg-base: var(--color-bg-base);
+  --color-bg-subtle: var(--color-bg-subtle);
+  --color-component-base: var(--color-component-base);
+  --color-component-hover: var(--color-component-hover);
+  --color-component-active: var(--color-component-active);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-border-default: var(--color-border-default);
+  --color-border-focus: var(--color-border-focus);
+  --color-solid-primary: var(--color-solid-primary);
+  --color-solid-hover: var(--color-solid-hover);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-primary: var(--color-text-primary);
+
+  --color-surface-app: var(--color-surface-app);
+  --color-surface-card: var(--color-surface-card);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-surface-hover: var(--color-surface-hover);
+  --color-surface-active: var(--color-surface-active);
+  --color-border-muted: var(--color-border-muted);
+  --color-border-subtle-secondary: var(--color-border-subtle-secondary);
+  --color-border-strong: var(--color-border-strong);
+  --color-text-disabled: var(--color-text-disabled);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-default: var(--color-text-default);
+}
