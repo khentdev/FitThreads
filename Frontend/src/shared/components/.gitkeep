@@ -1,0 +1,10 @@
+# Shared Components
+
+Place globally reusable UI components here.
+
+Examples:
+- Button.vue
+- Input.vue
+- Card.vue
+- Modal.vue
+- Spinner.vue
