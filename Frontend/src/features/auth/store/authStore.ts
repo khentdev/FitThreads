@@ -7,8 +7,10 @@ import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErro
 import * as AUTH_CODES from '../errors/authErrorCodes'
 import type { AxiosError } from 'axios'
 import type { ErrorResponse } from '../../../core/errors'
+import { useToast } from '../../../shared/composables/toast/useToast'
 
 export const useAuthStore = defineStore('auth', () => {
+    const { toast } = useToast()
 
     const states = reactive({
         isLoggingIn: false,
@@ -61,15 +63,12 @@ export const useAuthStore = defineStore('auth', () => {
                 password,
             })
             setUser("login", res)
+            toast.success("Logging you in...", { title: `Welcome back, ${res.user.username} 🔥` })
             return { success: true, verified: res.user.emailVerified }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<LoginErrorCode>>
             const { message, code, type, error } = authErrorHandler<LoginErrorCode>(axiosErr)
-
-            if (type === "offline") {
-                // handle offline UI error
-                // show toast
-            }
+            if (type === "offline") toast.error("Please check your internet connection and try again.", { title: "You are offline" })
             if (type === "timeout") errors.formError = message
             if (type === "server_error") errors.formError = message
             if (type === "unreachable") errors.formError = message
@@ -105,10 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
             const axiosErr = err as AxiosError<ErrorResponse<SignupErrorCode>>
             const { message, code, type } = authErrorHandler<SignupErrorCode>(axiosErr)
 
-            if (type === "offline") {
-                // handle offline UI error
-                // show toast
-            }
+            if (type === "offline") toast.error("Please check your internet connection and try again.", { title: "You are offline" })
             if (type === "timeout") errors.formError = message
             if (type === "server_error") errors.formError = message
             if (type === "unreachable") errors.formError = message
@@ -145,33 +141,28 @@ export const useAuthStore = defineStore('auth', () => {
         try {
             const res = await authService.verify(otp)
             setUser("verifyOTP", res)
+            toast.success("Logging you in...", { title: "Account verified successfully! 🔥" })
             return { success: true, redirect: null }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<VerifyOTPErrorCode>>
             const { message, code, type } = authErrorHandler<VerifyOTPErrorCode>(axiosErr)
-            if (type === "offline") {
-                // handle offline UI error
-                // show toast
-            }
+            if (type === "offline") toast.error("Please check your internet connection and try again.", { title: "You are offline" })
             if (type === "timeout") errors.formError = message
             if (type === "server_error") errors.formError = message
             if (type === "unreachable") errors.formError = message
 
             if (code === AUTH_CODES.AUTH_OTP_INVALID_FORMAT || code === AUTH_CODES.AUTH_OTP_INVALID_OR_EXPIRED) errors.otpError = message
             if (code === AUTH_CODES.AUTH_USER_NOT_FOUND) {
-                //toast with message = "Account not found. Please log in."
+                toast.error("Account not found. Please log in.", { title: "Account not found" })
                 return { success: false, redirect: "login" }
-
             }
             if (code === AUTH_CODES.AUTH_USER_ALREADY_VERIFIED) {
-                //toast with message = from backend message
+                toast.info("Your account is already verified. Please log in.", { title: "Already verified" })
                 return { success: false, redirect: "login" }
-
             }
             if (code === AUTH_CODES.AUTH_ACCOUNT_CREATION_FAILED || code === AUTH_CODES.AUTH_INVALID_DEVICE_FINGERPRINT) {
-                //toast with message = "Something went wrong. Please try again."
+                toast.error("Something went wrong. Please try again.", { title: "Something went wrong" })
                 return { success: false, redirect: "signup" }
-
             }
             return { success: false, redirect: null }
 
@@ -184,15 +175,14 @@ export const useAuthStore = defineStore('auth', () => {
         states.isResendingOTP = true
         try {
             const res = await authService.resendOTP(email)
-            // toast the response message
+            toast.info(res.message, { title: "Verification code sent" })
             return { success: true, redirect: null }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<ResendOTPErrorCode>>
             const { message, code, type } = authErrorHandler<ResendOTPErrorCode>(axiosErr)
-            if (type === "offline") {
-                // handle offline UI error
-                // show toast
-            }
+            if (type === "offline")
+                toast.error("Please check your internet connection and try again.", { title: "You are offline" })
+
             if (type === "timeout") errors.formError = message
             if (type === "server_error") errors.formError = message
             if (type === "unreachable") errors.formError = message
@@ -200,11 +190,11 @@ export const useAuthStore = defineStore('auth', () => {
             if (code === AUTH_CODES.AUTH_EMAIL_REQUIRED)
                 errors.otpError = message
             if (code === AUTH_CODES.AUTH_USER_NOT_FOUND) {
-                //toast with message = "Account not found. Please log in."
+                toast.error("Account not found. Please log in.", { title: "Account not found" })
                 return { success: false, redirect: "login" }
             }
             if (code === AUTH_CODES.AUTH_USER_ALREADY_VERIFIED) {
-                //toast with message = from backend message
+                toast.info("Your account is already verified. Please log in.", { title: "Already verified" })
                 return { success: false, redirect: "login" }
             }
             if (code === AUTH_CODES.AUTH_OTP_SEND_FAILED) errors.formError = message

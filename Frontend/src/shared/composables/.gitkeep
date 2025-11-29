@@ -1,9 +1,0 @@
-# Shared Composables
-
-Place globally reusable composables here.
-
-Examples:
-- useDebounce.ts
-- useIntersectionObserver.ts
-- useLocalStorage.ts
-- useAsync.ts
