@@ -4,6 +4,7 @@ import {
     sendAccountVerificationOTPService,
     verifyEmailAndCreateSessionService,
     resendVerificationOTPService,
+    sendMagicLinkService,
 } from "./service.js";
 import {
     LoginParamsVariables,
@@ -115,3 +116,13 @@ export const resendVerificationOTPController = async (
         message: "Verification code sent to your email. Please check your inbox."
     }, 200);
 };
+
+
+export const sendMagicLinkController = async (c: Context<{ Variables: { validatedMagicLinkParams: { email: string } } }>) => {
+    const { email } = c.get("validatedMagicLinkParams")
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) return c.json({ message: "Magic link sent - check your inbox.", email }, 200)
+
+    const res = await sendMagicLinkService(email, user)
+    return c.json({ message: "Magic link sent - check your inbox.", email: res.email }, 200)
+}
