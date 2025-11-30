@@ -1,7 +1,7 @@
 import { prisma } from "../../../prisma/prismaConfig.js";
 import bcrypt from "bcrypt";
 import { AppError } from "../../errors/customError.js";
-import { LoginParams, SendOTPParams, VerifyEmailAndCreateSessionParams } from "./types.js";
+import { LoginParams, SendOTPParams, VerifyEmailAndCreateSessionParams, VerifyMagicLinkParams } from "./types.js";
 import { storeToken } from "../session/data.js";
 import { generateTokens } from "../session/tokens.js";
 import { hashData } from "../../lib/hash.js";
@@ -221,4 +221,41 @@ export const sendMagicLinkService = async (email: string, user: User) => {
     logger.info({ email, messageId: emailResult.messageId }, "Magiclink sent successfully");
     return { email }
 }
+
+export const verifyMagicLinkService = async ({ token, deviceId }: VerifyMagicLinkParams) => {
+    const redis = getRedisClient();
+    const redisKey = RedisKeys.magicLink(token);
+    const email = await redis.get(redisKey) as string | null;
+
+    if (!email) throw new AppError("AUTH_MAGIC_LINK_INVALID_OR_EXPIRED", { field: "token" });
+
+    await redis.del(redisKey);
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new AppError("AUTH_USER_NOT_FOUND", { field: "email" });
+
+    try {
+        const { accessToken, refreshToken, csrfToken } = await prisma.$transaction(async (tx) => {
+            const { accessToken: token, refreshToken: sid, csrfToken: csrf, refreshTokenExpiry } = await generateTokens({
+                deviceId,
+                userId: user.id
+            });
+            const hashedToken = hashData(sid);
+            await storeToken({
+                token: hashedToken,
+                userId: user.id,
+                expiresAt: new Date(refreshTokenExpiry * 1000)
+            }, tx);
+            return { accessToken: token, refreshToken: sid, csrfToken: csrf };
+        });
+
+        logger.info({ email: user.email, userId: user.id }, "User logged in with magic link");
+        return { accessToken, refreshToken, csrfToken, user };
+    } catch (err) {
+        logger.error({ error: err, userId: user.id }, "Failed to login with magic link");
+        throw new AppError("AUTH_LOGIN_FAILED", { field: "login" });
+    }
+}
+
+
 
