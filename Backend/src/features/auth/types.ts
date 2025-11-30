@@ -54,3 +54,16 @@ export type ResendOTPParams = {
 export type ResendOTPParamsVariables = {
     resendOTPParams: ResendOTPParams;
 }
+
+export type VerifyMagicLinkRequestBody = {
+    token: unknown;
+}
+
+export type VerifyMagicLinkParams = {
+    token: string;
+    deviceId: string;
+}
+
+export type VerifyMagicLinkParamsVariables = {
+    verifyMagicLinkParams: VerifyMagicLinkParams;
+}
