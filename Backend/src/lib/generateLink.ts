@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { env } from "../configs/env.js";
 
 const baseUrl =
@@ -6,5 +5,5 @@ const baseUrl =
         ? env.FRONTEND_URL
         : env.FRONTEND_DEV_URL;
 
-export const generateMagicLink = () =>
-    `${baseUrl}/auth/magic-link?token=${encodeURIComponent(randomUUID())}`;
+export const generateMagicLink = (token: string) =>
+    `${baseUrl}/auth/magic-link?token=${encodeURIComponent(token)}`;
