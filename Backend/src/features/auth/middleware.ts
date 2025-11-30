@@ -105,3 +105,18 @@ export const validateSendMagicLink = async (c: Context, next: Next) => {
     c.set("validatedMagicLinkParams", payload)
     await next()
 }
+
+export const validateVerifyMagicLink = async (c: Context, next: Next) => {
+    const { token } = await c.req.json<{ token: unknown }>()
+    const fingerprint = c.req.header("X-Fingerprint");
+
+    if (!notEmpty(token)) throw new AppError("AUTH_MAGIC_LINK_INVALID_OR_EXPIRED", { field: "token" })
+    if (!isValidDeviceFingerprint(fingerprint)) throw new AppError("AUTH_INVALID_DEVICE_FINGERPRINT", { field: "device_fingerprint" })
+
+    const payload = {
+        token: (token as string).trim(),
+        deviceId: hashData(fingerprint as string)
+    }
+    c.set("verifyMagicLinkParams", payload)
+    await next()
+}

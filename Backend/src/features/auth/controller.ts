@@ -5,12 +5,14 @@ import {
     verifyEmailAndCreateSessionService,
     resendVerificationOTPService,
     sendMagicLinkService,
+    verifyMagicLinkService,
 } from "./service.js";
 import {
     LoginParamsVariables,
     SendOTPParamsVariables,
     VerifyEmailAndCreateSessionParamsVariables,
     ResendOTPParamsVariables,
+    VerifyMagicLinkParamsVariables,
 } from "./types.js";
 import { setAuthCookie, setCSRFCookie } from "./cookie.config.js";
 import { tokenExpiry } from "../../configs/env.js";
@@ -125,4 +127,32 @@ export const sendMagicLinkController = async (c: Context<{ Variables: { validate
 
     const res = await sendMagicLinkService(email, user)
     return c.json({ message: "Magic link sent - check your inbox.", email: res.email }, 200)
+}
+
+export const verifyMagicLinkController = async (c: Context<{ Variables: VerifyMagicLinkParamsVariables }>) => {
+    const { token, deviceId } = c.get("verifyMagicLinkParams")
+    const { accessToken, csrfToken, refreshToken, user } = await verifyMagicLinkService({ token, deviceId })
+
+    setAuthCookie({
+        c,
+        name: "sid",
+        value: refreshToken,
+        options: { maxAge: tokenExpiry().refreshTokenMaxAge }
+    });
+    setCSRFCookie({
+        c,
+        name: "csrfToken",
+        value: csrfToken,
+        options: { maxAge: tokenExpiry().csrfTokenMaxAge }
+    });
+
+    return c.json({
+        message: "Welcome back!",
+        accessToken,
+        user: {
+            emailVerified: user.emailVerified,
+            email: user.email,
+            username: user.username
+        }
+    }, 200)
 }
