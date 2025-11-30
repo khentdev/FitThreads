@@ -15,7 +15,6 @@ export const AUTH_ERROR_CODES = {
     AUTH_USERNAME_ALREADY_TAKEN: "AUTH_USERNAME_ALREADY_TAKEN",
     AUTH_USER_ALREADY_EXISTS: "AUTH_USER_ALREADY_EXISTS",
     AUTH_USER_ALREADY_VERIFIED: "AUTH_USER_ALREADY_VERIFIED",
-    AUTH_ACCOUNT_NOT_VERIFIED: "AUTH_ACCOUNT_NOT_VERIFIED",
     AUTH_USER_NOT_FOUND: "AUTH_USER_NOT_FOUND",
     AUTH_INVALID_CREDENTIALS: "AUTH_INVALID_CREDENTIALS",
     AUTH_OTP_INVALID_OR_EXPIRED: "AUTH_OTP_INVALID_OR_EXPIRED",
@@ -25,7 +24,7 @@ export const AUTH_ERROR_CODES = {
     AUTH_OTP_SEND_FAILED: "AUTH_OTP_SEND_FAILED",
     AUTH_LOGIN_FAILED: "AUTH_LOGIN_FAILED",
     AUTH_USER_NOT_VERIFIED: "AUTH_USER_NOT_VERIFIED",
-    AUTH_SENDOTP_MAGICLINK_FAILED: "AUTH_SENDOTP_MAGICLINK_FAILED"
+    AUTH_SEND_MAGICLINK_FAILED: "AUTH_SEND_MAGICLINK_FAILED"
 } as const
 
 export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
@@ -87,11 +86,6 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
         status: 409,
         message: "Your account is already verified. You can log in now.",
     },
-    AUTH_ACCOUNT_NOT_VERIFIED: {
-        code: "AUTH_ACCOUNT_NOT_VERIFIED",
-        status: 409,
-        message: "Your account is not verified. Please check the verification code we sent to your email.",
-    },
     AUTH_USER_NOT_FOUND: {
         code: "AUTH_USER_NOT_FOUND",
         status: 404,
@@ -129,8 +123,8 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
         status: 500,
         message: "We couldn't log you in right now. Please try again in a moment.",
     },
-    AUTH_SENDOTP_MAGICLINK_FAILED: {
-        code: "AUTH_SENDOTP_MAGICLINK_FAILED",
+    AUTH_SEND_MAGICLINK_FAILED: {
+        code: "AUTH_SEND_MAGICLINK_FAILED",
         status: 500,
         message: "We couldn't send your verification email. Please try again.",
     },
