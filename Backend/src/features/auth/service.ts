@@ -12,6 +12,8 @@ import { getRedisClient } from "../../configs/redis.js";
 import { sendEmail } from "../../configs/resend.js";
 import { env } from "../../configs/env.js";
 import logger from "../../lib/logger.js";
+import { randomUUID } from "crypto";
+import { User } from "../../../generated/prisma/client.js";
 
 const generateAndSendOTP = async (userId: string, email: string) => {
     const otp = generateOTP(6);
@@ -184,4 +186,39 @@ export const resendVerificationOTPService = async ({ email }: { email: string })
 
     await generateAndSendOTP(user.id, user.email);
 };
+
+export const sendMagicLinkService = async (email: string, user: User) => {
+    if (!user.emailVerified) {
+        await generateAndSendOTP(user.id, user.email);
+        throw new AppError("AUTH_USER_NOT_VERIFIED", { field: "email", data: { email } });
+    }
+
+    const token = randomUUID().replace(/-/g, "").slice(0, 32)
+    const redis = getRedisClient();
+    const redisKey = RedisKeys.magicLink(token);
+
+    try {
+        await redis.setex(redisKey, env.OTP_EXPIRY_SECONDS, email)
+        logger.info({ email, redisKey }, "OTP stored in Redis with user email");
+    } catch (err) {
+        logger.error({ error: err, email }, "Failed to send magic link");
+        throw new AppError("AUTH_SEND_MAGICLINK_FAILED", { field: "magic_link" });
+    }
+    const template = emailTemplates.magicLink(token)
+    const emailResult = await sendEmail({
+        from: env.EMAIL_FROM,
+        to: email,
+        subject: template.subject,
+        html: template.html,
+        text: template.text
+    })
+
+    if (!emailResult.success) {
+        await redis.del(redisKey)
+        logger.error({ email }, "Failed to send magic link");
+        throw new AppError("AUTH_SEND_MAGICLINK_FAILED", { field: "magic_link" });
+    }
+    logger.info({ email, messageId: emailResult.messageId }, "Magiclink sent successfully");
+    return { email }
+}
 
