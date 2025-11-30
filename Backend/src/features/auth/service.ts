@@ -14,6 +14,7 @@ import { env } from "../../configs/env.js";
 import logger from "../../lib/logger.js";
 import { randomUUID } from "crypto";
 import { User } from "../../../generated/prisma/client.js";
+import { generateMagicLink } from "../../lib/generateLink.js";
 
 const generateAndSendOTP = async (userId: string, email: string) => {
     const otp = generateOTP(6);
@@ -204,7 +205,8 @@ export const sendMagicLinkService = async (email: string, user: User) => {
         logger.error({ error: err, email }, "Failed to send magic link");
         throw new AppError("AUTH_SEND_MAGICLINK_FAILED", { field: "magic_link" });
     }
-    const template = emailTemplates.magicLink(token)
+
+    const template = emailTemplates.magicLink(generateMagicLink(token))
     const emailResult = await sendEmail({
         from: env.EMAIL_FROM,
         to: email,
