@@ -33,8 +33,7 @@
 
             <div class="flex flex-col gap-3 items-center">
                 <p class="text-sm text-text-muted">Didn't receive the code?</p>
-                <button type="button" @click="handleResendOTP"
-                    :disabled="authStore.states.isResendingOTP || canResend === false"
+                <button type="button" @click="handleResendOTP" :disabled="authStore.states.isResendingOTP || !canResend"
                     class="text-sm font-medium transition-colors text-text-secondary hover:text-solid-primary disabled:text-text-disabled disabled:cursor-not-allowed focus:outline-none focus:underline">
                     {{ resendButtonText }}
                 </button>
@@ -45,10 +44,11 @@
 
 <script setup lang="ts">
     import { CircleAlert } from "lucide-vue-next"
-    import { ref, computed, onMounted, watch } from "vue"
+    import { ref, computed, onMounted, watch, onUnmounted } from "vue"
     import { useUnverifiedEmail } from "../composables/useUnverifiedEmail"
     import { useRouter } from "vue-router"
     import { useAuthStore } from "../store/authStore"
+    import { useStorage } from "@vueuse/core"
 
     const authStore = useAuthStore()
     const { unverifiedEmail, clearUnverifiedEmail } = useUnverifiedEmail()
@@ -58,15 +58,16 @@
     const otpInputRef = ref<HTMLInputElement | null>(null)
     const userEmail = ref<string>('')
     const otpError = ref<string>('')
-    const isResending = ref<boolean>(false)
     const canResend = ref<boolean>(true)
-    const resendCountdown = ref<number>(0)
+    const resendEndTime = useStorage("otpResendEndTime", 0)
+    const remainingSeconds = ref(0)
+    let timerInterval: ReturnType<typeof setInterval> | null = null
 
     const isOTPComplete = computed(() => otpCode.value.length === 6)
 
     const resendButtonText = computed(() => {
-        if (isResending.value) return 'Sending...'
-        if (resendCountdown.value > 0) return `Resend in ${resendCountdown.value}s`
+        if (authStore.states.isResendingOTP) return 'Sending...'
+        if (remainingSeconds.value > 0) return `Resend in ${remainingSeconds.value}s`
         return 'Resend code'
     })
 
@@ -96,17 +97,29 @@
         }
     }
 
-    const startResendCountdown = (): void => {
-        canResend.value = false
-        resendCountdown.value = 60
+    const updateRemainingTime = () => {
+        const now = Date.now()
+        const diff = Math.ceil((resendEndTime.value - now) / 1000)
 
-        const interval = setInterval(() => {
-            resendCountdown.value--
-            if (resendCountdown.value <= 0) {
-                clearInterval(interval)
-                canResend.value = true
+        if (diff > 0) {
+            remainingSeconds.value = diff
+            canResend.value = false
+        } else {
+            remainingSeconds.value = 0
+            canResend.value = true
+            if (timerInterval) {
+                clearInterval(timerInterval)
+                timerInterval = null
             }
-        }, 1000)
+        }
+    }
+
+    const startResendCountdown = (): void => {
+        resendEndTime.value = Date.now() + 60 * 1000
+        updateRemainingTime()
+        if (!timerInterval) {
+            timerInterval = setInterval(updateRemainingTime, 1000)
+        }
     }
 
     const handleResendOTP = async (): Promise<void> => {
@@ -133,5 +146,15 @@
         }
         userEmail.value = unverifiedEmail.value.email
         otpInputRef.value?.focus()
+
+
+        updateRemainingTime()
+        if (remainingSeconds.value > 0) {
+            timerInterval = setInterval(updateRemainingTime, 1000)
+        }
+    })
+
+    onUnmounted(() => {
+        if (timerInterval) clearInterval(timerInterval)
     })
 </script>

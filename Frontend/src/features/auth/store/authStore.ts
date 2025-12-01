@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
-import type { AuthContext, AuthUserData, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse } from '../types'
+import type { AuthContext, AuthUserData, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse } from '../types'
 import { authService } from '../service'
 import { authErrorHandler } from '../errors/authErrorHandler'
-import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode } from '../errors/authErrorCodes'
+import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode, SendMagicLinkErrorCode, VerifyMagicLinkErrorCode } from '../errors/authErrorCodes'
 import * as AUTH_CODES from '../errors/authErrorCodes'
 import type { AxiosError } from 'axios'
 import type { ErrorResponse } from '../../../core/errors'
@@ -17,6 +17,8 @@ export const useAuthStore = defineStore('auth', () => {
         isSigningUp: false,
         isResendingOTP: false,
         isVerifyingOTP: false,
+        isSendingMagicLink: false,
+        isVerifyingMagicLink: false,
     })
 
     const errors = reactive({
@@ -32,9 +34,10 @@ export const useAuthStore = defineStore('auth', () => {
     function setUser(type: 'login', data: AuthUserLoginResponse): void
     function setUser(type: 'signup', data: AuthUserSignupResponse): void
     function setUser(type: 'verifyOTP', data: AuthVerifyOTPResponse): void
+    function setUser(type: 'magicLink', data: AuthVerifyMagicLinkResponse): void
     function setUser(
-        type: 'login' | 'signup' | 'verifyOTP',
-        data: AuthUserLoginResponse | AuthUserSignupResponse | AuthVerifyOTPResponse
+        type: 'login' | 'signup' | 'verifyOTP' | 'magicLink',
+        data: AuthUserLoginResponse | AuthUserSignupResponse | AuthVerifyOTPResponse | AuthVerifyMagicLinkResponse
     ): void {
         user.value = { type, userData: data } as AuthContext
     }
@@ -114,16 +117,12 @@ export const useAuthStore = defineStore('auth', () => {
             AUTH_CODES.AUTH_USERNAME_INVALID_FORMAT,
             AUTH_CODES.AUTH_USERNAME_ALREADY_TAKEN]
             if (code && usernameCodes.includes(code)) errors.usernameError = message
-
             if (code === AUTH_CODES.AUTH_EMAIL_REQUIRED) errors.emailError = message
             if (code === AUTH_CODES.AUTH_PASSWORD_REQUIRED) errors.passwordError = message
             if (code === AUTH_CODES.AUTH_PASSWORD_MIN_LENGTH) errors.passwordError = message
-
             if (code === AUTH_CODES.AUTH_INVALID_DEVICE_FINGERPRINT) errors.formError = "Something went wrong on our end. We're on it."
-
             if (code === AUTH_CODES.AUTH_USER_ALREADY_EXISTS) errors.emailError = message
             if (code === AUTH_CODES.AUTH_USER_ALREADY_VERIFIED) errors.formError = message
-
             if (code === AUTH_CODES.AUTH_ACCOUNT_CREATION_FAILED) errors.formError = message
             if (code === AUTH_CODES.AUTH_OTP_SEND_FAILED) errors.formError = message
 
@@ -204,6 +203,87 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const sendMagicLink = async (email: string) => {
+        if (states.isSendingMagicLink) return
+        states.isSendingMagicLink = true
+        clearErrors()
+        try {
+            const res = await authService.sendMagicLink(email)
+            toast.success(res.message, { title: "Magic Link Sent" })
+            return { success: true }
+        } catch (err) {
+            const axiosErr = err as AxiosError<ErrorResponse<SendMagicLinkErrorCode>>
+            const { message, code, type, error } = authErrorHandler<SendMagicLinkErrorCode>(axiosErr)
+
+            if (type === "offline") errors.formError = message
+            if (type === "timeout") errors.formError = message
+            if (type === "server_error") errors.formError = message
+            if (type === "unreachable") errors.formError = message
+
+            if (code === AUTH_CODES.AUTH_EMAIL_REQUIRED) errors.emailError = message
+            if (code === AUTH_CODES.AUTH_USER_NOT_VERIFIED) {
+                toast.error(message, { title: "Account not verified" })
+                return { success: false, verified: false, email: error.response?.data?.error?.data?.['email'] }
+            }
+            if (code === AUTH_CODES.AUTH_SEND_MAGICLINK_FAILED) errors.formError = message
+            return { success: false }
+        } finally {
+            states.isSendingMagicLink = false
+        }
+    }
+
+    const verifyMagicLinkToken = async (token: string) => {
+        if (states.isVerifyingMagicLink) return
+        states.isVerifyingMagicLink = true
+        clearErrors()
+        try {
+            const res = await authService.verifyMagicLink(token)
+            setUser("magicLink", res)
+            toast.success("Logging you in...", { title: `Welcome back, ${res.user.username} 🔥` })
+            return { success: true }
+        } catch (err) {
+            const axiosErr = err as AxiosError<ErrorResponse<VerifyMagicLinkErrorCode>>
+            const { message, code, type } = authErrorHandler<VerifyMagicLinkErrorCode>(axiosErr)
+
+            if (type === "offline") {
+                toast.error("Please check your internet connection and try again.", { title: "You are offline" })
+                return { success: false, redirect: "login" }
+            }
+            if (type === "timeout") {
+                toast.error("The request timed out. Please try again.", { title: "Request timed out" })
+                return { success: false, redirect: "login" }
+            }
+            if (type === "server_error") {
+                toast.error("Something went wrong on our end. Please try again.", { title: "Server error" })
+                return { success: false, redirect: "login" }
+            }
+            if (type === "unreachable") {
+                toast.error("Couldn't reach the server. Check your connection and try again.", { title: "Connection failed" })
+                return { success: false, redirect: "login" }
+            }
+
+            if (code === AUTH_CODES.AUTH_MAGIC_LINK_INVALID_OR_EXPIRED) {
+                toast.error(message, { title: "Invalid Link" })
+                return { success: false, redirect: "magic-link" }
+            }
+            if (code === AUTH_CODES.AUTH_USER_NOT_FOUND) {
+                toast.error("Account not found. Please log in.", { title: "Account not found" })
+                return { success: false, redirect: "signup" }
+            }
+            if (code === AUTH_CODES.AUTH_LOGIN_FAILED) {
+                toast.error(message, { title: "Login failed" })
+                return { success: false, redirect: "login" }
+            }
+            if (code === AUTH_CODES.AUTH_INVALID_DEVICE_FINGERPRINT) {
+                toast.error("Something went wrong on our end. We're on it.", { title: "Something went wrong" })
+                return { success: false, redirect: "login" }
+            }
+            return { success: false, redirect: null }
+        } finally {
+            states.isVerifyingMagicLink = false
+        }
+    }
+
     return {
         getUserData,
         errors,
@@ -214,6 +294,8 @@ export const useAuthStore = defineStore('auth', () => {
         signupUser,
         verifyOTP,
         resendOTP,
+        sendMagicLink,
+        verifyMagicLinkToken,
         states,
     }
 })

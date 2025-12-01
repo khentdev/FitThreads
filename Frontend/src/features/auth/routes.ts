@@ -17,6 +17,11 @@ export const authRoutes: RouteRecordRaw[] = [
                 component: () => import("../auth/views/SignupView.vue"),
             },
             {
+                path: 'magic-link',
+                name: 'magic-link',
+                component: () => import("../auth/views/MagicLinkView.vue"),
+            },
+            {
                 path: 'verify',
                 name: 'verify',
                 component: () => import("../auth/views/VerifyOTP.vue"),
