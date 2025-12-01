@@ -14,26 +14,17 @@ export type User = {
     email: string
     emailVerified: boolean
 }
+
 export type AuthUserLoginResponse = {
     message: string,
     accessToken: string
     user: User
 }
-export type AuthUserData = {
-    login: AuthUserLoginResponse
-    signup: AuthUserSignupResponse
-    verifyOTP: AuthVerifyOTPResponse
-}
+
 export type AuthUserSignupResponse = {
     message: string
     email: string
 }
-
-export type AuthContext =
-    | { type: 'login'; userData: AuthUserLoginResponse }
-    | { type: 'signup'; userData: AuthUserSignupResponse }
-    | { type: 'verifyOTP'; userData: AuthVerifyOTPResponse }
-    | null
 
 export type AuthVerifyOTPResponse = {
     message: string
@@ -44,3 +35,28 @@ export type AuthVerifyOTPResponse = {
 export type AuthResendOTPResponse = {
     message: string
 }
+
+export type AuthSendMagicLinkResponse = {
+    message: string
+    email: string
+}
+
+export type AuthVerifyMagicLinkResponse = {
+    message: string
+    accessToken: string
+    user: User
+}
+
+export type AuthUserData = {
+    login: AuthUserLoginResponse
+    signup: AuthUserSignupResponse
+    verifyOTP: AuthVerifyOTPResponse
+    magicLink: AuthVerifyMagicLinkResponse
+}
+
+export type AuthContext =
+    | { type: 'login'; userData: AuthUserLoginResponse }
+    | { type: 'signup'; userData: AuthUserSignupResponse }
+    | { type: 'verifyOTP'; userData: AuthVerifyOTPResponse }
+    | { type: 'magicLink'; userData: AuthVerifyMagicLinkResponse }
+    | null

@@ -93,3 +93,22 @@ export type ResendOTPErrorCode =
     | typeof AUTH_USER_NOT_FOUND
     | typeof AUTH_USER_ALREADY_VERIFIED
     | typeof AUTH_OTP_SEND_FAILED
+
+// ============================================
+// MAGIC LINK ERROR CODES
+// ============================================
+
+// Service Layer
+export const AUTH_SEND_MAGICLINK_FAILED = "AUTH_SEND_MAGICLINK_FAILED"
+export const AUTH_MAGIC_LINK_INVALID_OR_EXPIRED = "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED"
+
+export type SendMagicLinkErrorCode =
+    | typeof AUTH_EMAIL_REQUIRED
+    | typeof AUTH_USER_NOT_VERIFIED
+    | typeof AUTH_SEND_MAGICLINK_FAILED
+
+export type VerifyMagicLinkErrorCode =
+    | typeof AUTH_MAGIC_LINK_INVALID_OR_EXPIRED
+    | typeof AUTH_USER_NOT_FOUND
+    | typeof AUTH_LOGIN_FAILED
+    | typeof AUTH_INVALID_DEVICE_FINGERPRINT

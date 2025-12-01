@@ -31,7 +31,7 @@
                         <circle-alert class="self-start size-5 shrink-0" />
                         <p>{{
                             authStore.errors.passwordError
-                            }}</p>
+                        }}</p>
                     </div>
                 </div>
                 <button :disabled="authStore.states.isLoggingIn"
@@ -45,7 +45,7 @@
                 <p class="text-text-muted">OR</p>
                 <div class="w-full h-px bg-border-muted"></div>
             </div>
-            <button
+            <button @click="() => router.push({ name: 'magic-link' })"
                 class="h-14 font-bold rounded-lg border-2 transition-colors cursor-pointer text-text-secondary focus:outline-none focus:border-none focus:ring-2 focus:ring-border-focus border-border-default">Continue
                 with magic link</button>
             <AuthNavLink to="/auth/signup" promptText="Don't have an account?" linkText="Sign up" align="center"
