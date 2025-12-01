@@ -7,14 +7,14 @@ import { generateTokens } from "../session/tokens.js";
 import { hashData } from "../../lib/hash.js";
 import { generateOTP } from "../../lib/otp.js";
 import { RedisKeys } from "../../lib/redis-keys.js";
-import { emailTemplates } from "../../lib/email-templates.js";
+import { emailTemplates } from "./utils/email-templates.js";
 import { getRedisClient } from "../../configs/redis.js";
 import { sendEmail } from "../../configs/resend.js";
 import { env } from "../../configs/env.js";
 import logger from "../../lib/logger.js";
 import { randomUUID } from "crypto";
 import { User } from "../../../generated/prisma/client.js";
-import { generateMagicLink } from "../../lib/generateLink.js";
+import { generateMagicLink } from "./utils/generateLink.js";
 
 const generateAndSendOTP = async (userId: string, email: string) => {
     const otp = generateOTP(6);
