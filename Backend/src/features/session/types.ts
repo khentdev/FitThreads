@@ -6,6 +6,7 @@ import {
     JwtTokenNotBefore,
     JwtTokenSignatureMismatched,
 } from 'hono/utils/jwt/types';
+import { User } from '../../../generated/prisma/client.js';
 
 //Token generation context
 export type TokenPayload = {
@@ -29,8 +30,8 @@ export type JwtErrorConstructor =
 export type StoreTokenParams = { userId: string, token: string, expiresAt: Date }
 
 export type SessionPayloadParams = {
-    user: { id: string, email: string, username: string }
-    deviceId: string,
+    user: User
+    deviceId: string
     oldToken: string
 }
 export type SessionPayloadVariables = {
@@ -38,12 +39,12 @@ export type SessionPayloadVariables = {
 }
 
 export type RefreshSessionParams = {
-    user: { id: string, email: string, username: string },
+    user: User,
     deviceId: string,
     oldToken: string
 }
 
 export type SessionCachePayload = {
-    user: { id: string, email: string, username: string },
+    user: User,
     refreshToken: string
 }

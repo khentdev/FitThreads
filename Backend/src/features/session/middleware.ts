@@ -39,8 +39,8 @@ export const validateSession = async (c: Context, next: Next) => {
     if (!tokenExists) throw Unauthorized("Invalid session token", "session_token")
 
     const sessionPayload: SessionPayloadParams = {
-        user: { id: user.id, email: user.email, username: user.username, },
-        deviceId: hashData(fingerprint!),
+        user,
+        deviceId: hashData(fingerprint as string),
         oldToken: sessionCookie
     }
     c.set("sessionPayload", sessionPayload)
