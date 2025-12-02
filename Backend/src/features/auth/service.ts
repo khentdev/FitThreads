@@ -6,7 +6,7 @@ import { storeToken } from "../session/data.js";
 import { generateTokens } from "../session/tokens.js";
 import { hashData } from "../../lib/hash.js";
 import { generateOTP } from "../../lib/otp.js";
-import { RedisKeys } from "../../lib/redis-keys.js";
+import { RedisKeys } from "./utils/auth-keys.js";
 import { emailTemplates } from "./utils/email-templates.js";
 import { getRedisClient } from "../../configs/redis.js";
 import { sendEmail } from "../../configs/resend.js";

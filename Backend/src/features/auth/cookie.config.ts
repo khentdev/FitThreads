@@ -33,5 +33,5 @@ export const setAuthCookie = ({ c, name, value, options }: CookieParams) =>
 export const setCSRFCookie = ({ c, name, value, options }: CookieParams) =>
     setCookie(c, name, value, createCookieOptions({ context: "csrf", ...options }))
 
-export const getCookieValue = (c: Context, name: CookieNames) => getCookie(c, name);
-export const deleteAuthCookie = (c: Context, name: CookieNames) => deleteCookie(c, name, { path: "/", secure: env.NODE_ENV === "production", sameSite: env.NODE_ENV === "production" ? "none" : "lax" });
+export const getCookieValue = (c: Context, name: any) => getCookie(c, name);
+export const deleteAuthCookie = (c: Context, name: any) => deleteCookie(c, name, { path: "/", secure: env.NODE_ENV === "production", sameSite: env.NODE_ENV === "production" ? "none" : "lax" });

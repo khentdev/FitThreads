@@ -2,7 +2,7 @@ import { vi, describe, it, expect, beforeEach, afterAll } from "vitest";
 import { createApp } from "../../../createApp.js";
 import { prisma } from "../../../../prisma/prismaConfig.js";
 import { getRedisClient } from "../../../configs/redis.js";
-import { RedisKeys } from "../../../lib/redis-keys.js";
+import { RedisKeys } from "../utils/auth-keys.js";
 
 vi.mock("../../../configs/resend.js", () => ({
     sendEmail: vi.fn().mockResolvedValue({ success: true, messageId: "Message test id 123" })
