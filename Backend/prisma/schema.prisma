@@ -53,6 +53,7 @@ model TokenCleanupQueue {
   cleanupAt   DateTime @default(dbgenerated("(now() + '00:15:00'::interval)"))
   createdAt   DateTime @default(now())
 
+  @@index([cleanupAt])
   @@map("token_cleanup_queue")
 }
 
