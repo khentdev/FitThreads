@@ -9,5 +9,11 @@ export const refreshSessionController = async (c: Context<{ Variables: SessionPa
     const { accessToken, refreshToken, csrfToken, user: updatedUser } = await refreshSessionService({ user, deviceId, oldToken })
     setAuthCookie({ c, name: "sid", value: refreshToken, options: { maxAge: tokenExpiry().refreshTokenMaxAge } })
     setCSRFCookie({ c, name: "csrfToken", value: csrfToken, options: { maxAge: tokenExpiry().csrfTokenMaxAge } })
-    return c.json({ accessToken, user: updatedUser })
+    return c.json({
+        accessToken, user: {
+            email: updatedUser.email,
+            username: updatedUser.username,
+            emailVerified: updatedUser.emailVerified,
+        }
+    })
 }

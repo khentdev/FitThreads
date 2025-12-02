@@ -9,15 +9,13 @@ import { AppError } from "../../errors/customError.js";
 import { ERROR_CODES } from "../../errors/index.js";
 import { SESSION_ERROR_CODES, SessionErrorCode } from "./errors.js";
 import { JwtErrorConstructor, TokenPayload, TokenPayloadNoIss } from "./types.js";
-import { hashData } from "../../lib/hash.js";
 
 
 const generateAccessToken = (payload: TokenPayloadNoIss) => {
     const { accessTokenExpiry } = tokenExpiry()
     const now = Math.floor(Date.now() / 1000)
     return sign({
-        deviceId: hashData(payload.deviceId),
-        userId: payload.userId,
+        ...payload,
         iat: now,
         exp: accessTokenExpiry,
         iss: env.JWT_ISSUER,
@@ -29,8 +27,7 @@ const generateRefreshToken = (payload: TokenPayloadNoIss) => {
     const { refreshTokenExpiry } = tokenExpiry()
     const now = Math.floor(Date.now() / 1000)
     return sign({
-        deviceId: hashData(payload.deviceId),
-        userId: payload.userId,
+        ...payload,
         iat: now,
         exp: refreshTokenExpiry,
         iss: env.JWT_ISSUER,
