@@ -1,9 +1,11 @@
 import { prisma } from "../../prisma/prismaConfig.js";
 import logger from "./logger.js";
+import { stopJobs } from "../jobs/index.js";
 
 const shutdown = async (signal: string) => {
     try {
         logger.debug(`Signal Received: ${signal} - Shutting down gracefully...`);
+        stopJobs()
         await prisma.$disconnect();
         process.exit(0);
     } catch (err) {
@@ -15,15 +17,15 @@ const shutdown = async (signal: string) => {
 export const handleGracefulShutdown = () => {
     const signals = ['SIGINT', 'SIGTERM', 'SIGUSR1'];
     signals.forEach((signal) => {
-        process.once(signal, () => shutdown(signal));
+        process.once(signal, async () => await shutdown(signal));
     });
-    process.on('unhandledRejection', (reason) => {
+    process.on('unhandledRejection', async (reason) => {
         logger.error({ reason }, 'Unhandled promise rejection');
-        shutdown('UNHANDLED_REJECTION');
+        await shutdown('UNHANDLED_REJECTION');
     });
 
-    process.on('uncaughtException', (err) => {
+    process.on('uncaughtException', async (err) => {
         logger.error({ err }, 'Uncaught exception');
-        shutdown('UNCAUGHT_EXCEPTION');
+        await shutdown('UNCAUGHT_EXCEPTION');
     });
 }

@@ -29,7 +29,7 @@ export const validateSession = async (c: Context, next: Next) => {
 
     const payload = await verifyTokenOrThrow(sessionCookie)
 
-    if (!compareHashes(fingerprint, payload.deviceId))
+    if (!compareHashes(fingerprint!, payload.deviceId))
         throw Unauthorized("Fingerprint mismatch", "device_fingerprint")
 
     const user = await prisma.user.findUnique({ where: { id: payload.userId } })
