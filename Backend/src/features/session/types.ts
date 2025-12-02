@@ -27,3 +27,23 @@ export type JwtErrorConstructor =
 
 
 export type StoreTokenParams = { userId: string, token: string, expiresAt: Date }
+
+export type SessionPayloadParams = {
+    user: { id: string, email: string, username: string }
+    deviceId: string,
+    oldToken: string
+}
+export type SessionPayloadVariables = {
+    sessionPayload: SessionPayloadParams
+}
+
+export type RefreshSessionParams = {
+    user: { id: string, email: string, username: string },
+    deviceId: string,
+    oldToken: string
+}
+
+export type SessionCachePayload = {
+    user: { id: string, email: string, username: string },
+    refreshToken: string
+}

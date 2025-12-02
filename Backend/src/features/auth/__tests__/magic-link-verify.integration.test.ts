@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll } from "vitest"
 import { createApp } from "../../../createApp.js"
 import { getRedisClient } from "../../../configs/redis.js"
 import { prisma } from "../../../../prisma/prismaConfig.js"
-import { RedisKeys } from "../../../lib/redis-keys.js"
+import { RedisKeys } from "../utils/auth-keys.js"
 import { randomUUID } from "crypto"
 
 describe("Verify Magic Link Integration Tests", () => {
