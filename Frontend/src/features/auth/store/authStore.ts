@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
-import { reactive, ref } from 'vue'
-import type { AuthContext, AuthUserData, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse } from '../types'
+import { computed, reactive, readonly, ref } from 'vue'
+import type { AuthContext, AuthUserData, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse } from '../types'
 import { authService } from '../service'
 import { authErrorHandler } from '../errors/authErrorHandler'
-import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode, SendMagicLinkErrorCode, VerifyMagicLinkErrorCode } from '../errors/authErrorCodes'
+import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode, SendMagicLinkErrorCode, VerifyMagicLinkErrorCode, RefreshSessionErrorCode } from '../errors/authErrorCodes'
 import * as AUTH_CODES from '../errors/authErrorCodes'
 import type { AxiosError } from 'axios'
 import type { ErrorResponse } from '../../../core/errors'
@@ -19,6 +19,12 @@ export const useAuthStore = defineStore('auth', () => {
         isVerifyingOTP: false,
         isSendingMagicLink: false,
         isVerifyingMagicLink: false,
+        isRefreshingSession: false,
+        sessionInitialized: false,
+    })
+
+    const systemErrors = reactive({
+        sessionError: false,
     })
 
     const errors = reactive({
@@ -35,9 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
     function setUser(type: 'signup', data: AuthUserSignupResponse): void
     function setUser(type: 'verifyOTP', data: AuthVerifyOTPResponse): void
     function setUser(type: 'magicLink', data: AuthVerifyMagicLinkResponse): void
+    function setUser(type: 'refreshSession', data: AuthRefreshSessionResponse): void
     function setUser(
-        type: 'login' | 'signup' | 'verifyOTP' | 'magicLink',
-        data: AuthUserLoginResponse | AuthUserSignupResponse | AuthVerifyOTPResponse | AuthVerifyMagicLinkResponse
+        type: 'login' | 'signup' | 'verifyOTP' | 'magicLink' | 'refreshSession',
+        data: AuthUserLoginResponse | AuthUserSignupResponse | AuthVerifyOTPResponse | AuthVerifyMagicLinkResponse | AuthRefreshSessionResponse
     ): void {
         user.value = { type, userData: data } as AuthContext
     }
@@ -47,7 +54,10 @@ export const useAuthStore = defineStore('auth', () => {
     const clearUser = () => {
         user.value = null
     }
-
+    const hasAuthenticated = computed(() => {
+        const type = user.value?.type
+        return type === 'verifyOTP' || type === 'magicLink' || type === 'refreshSession' || type === "login"
+    })
     const clearErrors = () => {
         errors.usernameError = ''
         errors.emailError = ''
@@ -284,8 +294,65 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    let refreshPromise: Promise<{ success: boolean, logout: boolean, }> | null = null
+    const refreshSession = async () => {
+        if (states.isRefreshingSession && refreshPromise) return refreshPromise
+        states.isRefreshingSession = true
+
+        refreshPromise = (async () => {
+            const MAX_RETRIES = 5
+
+            for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+                try {
+                    const res = await authService.refreshSession()
+                    setUser("refreshSession", res)
+                    systemErrors.sessionError = false
+                    return { success: true, logout: false }
+                } catch (error) {
+                    const axiosErr = error as AxiosError<ErrorResponse<RefreshSessionErrorCode>>
+                    const { code, type } = authErrorHandler<RefreshSessionErrorCode>(axiosErr)
+                    if (code === AUTH_CODES.SESSION_LOCK_IN_PROGRESS && attempt < MAX_RETRIES - 1) {
+                        const baseDelay = 500
+                        const maxDelay = 3000;
+                        let delay = Math.min(baseDelay * (2 ** attempt), maxDelay);
+                        const jitter = Math.random() * 200;
+                        await new Promise(r => setTimeout(r, delay + jitter));
+                        continue;
+                    }
+
+                    const sessionFailureCodes = [
+                        AUTH_CODES.SESSION_UNAUTHORIZED,
+                        AUTH_CODES.TOKEN_INVALID,
+                        AUTH_CODES.TOKEN_EXPIRED
+                    ]
+                    if (code && sessionFailureCodes.includes(code)) {
+                        clearUser()
+                        systemErrors.sessionError = false
+                        return { success: false, logout: true }
+                    }
+
+                    if (type === "offline" || type === "server_error" || type === "unreachable" || type === "timeout") {
+                        systemErrors.sessionError = true
+                        return { success: false, logout: false }
+                    }
+                    return { success: false, logout: true }
+                }
+            }
+            return { success: false, logout: true }
+        })()
+
+        try {
+            return await refreshPromise
+        } finally {
+            refreshPromise = null
+            states.sessionInitialized = true
+            states.isRefreshingSession = false
+        }
+    }
+
     return {
         getUserData,
+        hasAuthenticated,
         errors,
         setUser,
         clearUser,
@@ -296,6 +363,8 @@ export const useAuthStore = defineStore('auth', () => {
         resendOTP,
         sendMagicLink,
         verifyMagicLinkToken,
+        refreshSession,
         states,
+        systemErrors
     }
 })

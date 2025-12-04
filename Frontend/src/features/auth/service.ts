@@ -1,6 +1,6 @@
 import { axiosInstance } from "../../core/api/axiosConfig";
 import { getTypedResponse } from "../../shared/types/types";
-import type { LoginCredentials, SignupCredentials, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthResendOTPResponse, AuthSendMagicLinkResponse, AuthVerifyMagicLinkResponse } from "./types";
+import type { LoginCredentials, SignupCredentials, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthResendOTPResponse, AuthSendMagicLinkResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse } from "./types";
 
 export const authService = {
     login: async (credentials: LoginCredentials) => {
@@ -26,5 +26,9 @@ export const authService = {
     verifyMagicLink: async (token: string) => {
         const response = await axiosInstance.post('/auth/magic-link/verify', { token })
         return getTypedResponse<AuthVerifyMagicLinkResponse>(response)
+    },
+    refreshSession: async () => {
+        const response = await axiosInstance.post('/auth/session/refresh')
+        return getTypedResponse<AuthRefreshSessionResponse>(response)
     }
 }

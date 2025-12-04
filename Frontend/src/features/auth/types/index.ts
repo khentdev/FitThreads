@@ -47,11 +47,17 @@ export type AuthVerifyMagicLinkResponse = {
     user: User
 }
 
+export type AuthRefreshSessionResponse = {
+    accessToken: string
+    user: User
+}
+
 export type AuthUserData = {
     login: AuthUserLoginResponse
     signup: AuthUserSignupResponse
     verifyOTP: AuthVerifyOTPResponse
     magicLink: AuthVerifyMagicLinkResponse
+    refreshSession: AuthRefreshSessionResponse
 }
 
 export type AuthContext =
@@ -59,4 +65,5 @@ export type AuthContext =
     | { type: 'signup'; userData: AuthUserSignupResponse }
     | { type: 'verifyOTP'; userData: AuthVerifyOTPResponse }
     | { type: 'magicLink'; userData: AuthVerifyMagicLinkResponse }
+    | { type: 'refreshSession'; userData: AuthRefreshSessionResponse }
     | null
