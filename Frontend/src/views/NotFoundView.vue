@@ -1,43 +1,21 @@
 <template>
-    <div class="not-found">
-        <h1>404</h1>
-        <p>Page not found</p>
-        <RouterLink to="/">Go back home</RouterLink>
-    </div>
+    <section class="flex min-h-screen flex-col items-center justify-center bg-surface-app p-4 text-center">
+        <div class="flex flex-col items-center gap-6">
+            <h1 class="text-9xl font-extrabold text-text-default opacity-10">404</h1>
+            <div class="flex flex-col gap-2">
+                <h2 class="text-2xl font-bold text-text-default">Page not found</h2>
+                <p class="text-text-muted">
+                    The page you are looking for doesn't exist or has been moved.
+                </p>
+            </div>
+            <RouterLink to="/"
+                class="mt-4 flex h-12 items-center justify-center rounded-lg bg-solid-primary px-8 font-bold text-bg-primary transition-colors hover:bg-solid-hover focus:outline-none focus:ring-2 focus:ring-border-focus focus:ring-offset-2">
+                Go back home
+            </RouterLink>
+        </div>
+    </section>
 </template>
 
 <script setup lang="ts">
     import { RouterLink } from 'vue-router'
 </script>
-
-<style scoped>
-.not-found {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-}
-
-.not-found h1 {
-    font-size: 4rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-.not-found p {
-    font-size: 1.25rem;
-    margin-bottom: 2rem;
-    color: #6b7280;
-}
-
-.not-found a {
-    color: #3b82f6;
-    text-decoration: none;
-}
-
-.not-found a:hover {
-    text-decoration: underline;
-}
-</style>

@@ -1,11 +1,13 @@
 import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios'
 import { axiosInstance } from './axiosConfig'
 import { getFingerprint } from '../utils/getFingerprint'
+import { getCookie } from '../utils/getCookieHelper'
 
 const onRequest = async (
     config: InternalAxiosRequestConfig
 ) => {
     config.headers["X-Fingerprint"] = await getFingerprint()
+    config.headers["X-CSRF-Token"] = getCookie("csrfToken")
     return config
 }
 

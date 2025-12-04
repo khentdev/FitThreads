@@ -112,3 +112,20 @@ export type VerifyMagicLinkErrorCode =
     | typeof AUTH_USER_NOT_FOUND
     | typeof AUTH_LOGIN_FAILED
     | typeof AUTH_INVALID_DEVICE_FINGERPRINT
+
+// ============================================
+// SESSION ERROR CODES
+// ============================================
+
+export const SESSION_UNAUTHORIZED = "SESSION_UNAUTHORIZED"
+export const SESSION_REFRESH_FAILED = "SESSION_REFRESH_FAILED"
+export const SESSION_LOCK_IN_PROGRESS = "SESSION_LOCK_IN_PROGRESS"
+export const TOKEN_INVALID = "TOKEN_INVALID"
+export const TOKEN_EXPIRED = "TOKEN_EXPIRED"
+
+export type RefreshSessionErrorCode =
+    | typeof SESSION_UNAUTHORIZED
+    | typeof SESSION_REFRESH_FAILED
+    | typeof SESSION_LOCK_IN_PROGRESS
+    | typeof TOKEN_INVALID
+    | typeof TOKEN_EXPIRED
