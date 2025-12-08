@@ -1,7 +1,7 @@
 import { Context, Next } from "hono";
 import { CreatePostParamsVariables, CreatePostRequestBody } from "./types.js";
 import { VerifyTokenVariables } from "../../middleware/validateAccessToken.js";
-import { isMinLength, isWithinMaxLength, isWithinLengthRange } from "../../lib/validation.js";
+import { isMinLength, isWithinMaxLength, isWithinLengthRange, notEmpty } from "../../lib/validation.js";
 import { AppError } from "../../errors/customError.js";
 
 const POST_TITLE_MIN = 6;
@@ -12,6 +12,7 @@ const POST_TAGS_MIN = 1;
 const POST_TAGS_MAX = 5;
 const POST_TAG_MIN_LENGTH = 2;
 const POST_TAG_MAX_LENGTH = 30;
+const POST_TAG_REGEX = /^[a-zA-Z0-9_-]+$/;
 
 export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVariables & CreatePostParamsVariables }>, next: Next) => {
     const { user } = c.get("verifyTokenVariables")
@@ -41,6 +42,9 @@ export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVa
                 throw new AppError("POST_TAG_MIN_LENGTH", { field: "post_tags" })
             throw new AppError("POST_TAG_MAX_LENGTH", { field: "post_tags" })
         }
+        if (!notEmpty(tag) || !POST_TAG_REGEX.test(tag as string))
+            throw new AppError("POST_TAG_FORMAT_INVALID", { field: "post_tags" })
+
     }
 
     c.set("createPostParams", {

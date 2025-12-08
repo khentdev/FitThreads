@@ -12,6 +12,7 @@ export const FEED_ERROR_CODES = {
     POST_TAGS_LIMIT_EXCEEDED: "POST_TAGS_LIMIT_EXCEEDED",
     POST_TAG_MIN_LENGTH: "POST_TAG_MIN_LENGTH",
     POST_TAG_MAX_LENGTH: "POST_TAG_MAX_LENGTH",
+    POST_TAG_FORMAT_INVALID: "POST_TAG_FORMAT_INVALID",
 
     // Service Layer Error
     POST_CREATION_FAILED: "POST_CREATION_FAILED",
@@ -62,6 +63,11 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "POST_TAG_MAX_LENGTH",
         status: 400,
         message: "Each tag must be 30 characters or fewer."
+    },
+    POST_TAG_FORMAT_INVALID: {
+        code: "POST_TAG_FORMAT_INVALID",
+        status: 400,
+        message: "Tags must contain only letters and numbers."
     },
 
     // Service Layer Error

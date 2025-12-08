@@ -53,7 +53,7 @@ describe("Create Post Integration Test", () => {
             body: JSON.stringify({
                 title: "test-title",
                 content: "Fitness is very good for your health because it will give you a healthy body and a healthy lifestyle.",
-                postTags: ["test-tag-1", "test-tag-2", "test-tag-3", "test-tag-4", "test-tag-5"]
+                postTags: ["testtag1", "testtag2", "testtag3", "testtag4", "testtag5"]
             })
         })
 
@@ -66,7 +66,7 @@ describe("Create Post Integration Test", () => {
 
         expect(post).toBeDefined()
         expect(post?.postTags.length).toBe(5)
-        expect(tagNames).toEqual(["test-tag-1", "test-tag-2", "test-tag-3", "test-tag-4", "test-tag-5"])
+        expect(tagNames).toEqual(["testtag1", "testtag2", "testtag3", "testtag4", "testtag5"])
     })
 
     describe("Middleware Validation Tests", () => {
@@ -427,6 +427,25 @@ describe("Create Post Integration Test", () => {
                 })
 
                 expect(response.status).toBe(201)
+            })
+
+            it("Should reject tag with invalid characters (non-alphanumeric)", async () => {
+                const response = await app.request("/feed/create-post", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title: "Valid Title",
+                        content: "This is a valid content that meets the minimum length requirement for a post.",
+                        postTags: ["invalid-tag!"]
+                    })
+                })
+
+                const json = await response.json() as any
+                expect(response.status).toBe(400)
+                expect(json.error.code).toBe("POST_TAG_FORMAT_INVALID")
             })
         })
     })
