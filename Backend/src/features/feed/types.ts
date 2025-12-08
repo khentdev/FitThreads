@@ -19,3 +19,11 @@ export type CreatePostParamsVariables = {
         postTags: string[]
     }
 }
+
+export type GetFeedParams = {
+    cursor?: {
+        createdAt: string,
+        id: string
+    }
+    limit?: number
+}

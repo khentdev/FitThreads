@@ -1,8 +1,16 @@
 import { Context } from "hono";
 import { CreatePostParamsVariables } from "./types.js";
-import { createPostService } from "./service.js";
-export const CreatePostController = async (c: Context<{ Variables: CreatePostParamsVariables }>) => {
+import { createPostService, getFeedService } from "./service.js";
+import { getSanitizedFeedQuery } from "./utils/getSanitizedFeedQuery.js";
+
+export const createPostController = async (c: Context<{ Variables: CreatePostParamsVariables }>) => {
     const { authorId, title, content, postTags } = c.get("createPostParams")
     await createPostService({ authorId, title, content, postTags })
     return c.json({ message: "Your fitness thought is now live!" }, 201)
+}
+
+export const getFeedController = async (c: Context) => {
+    const { cursor, limit } = getSanitizedFeedQuery(c)
+    const result = await getFeedService({ cursor, limit })
+    return c.json(result, 200)
 }

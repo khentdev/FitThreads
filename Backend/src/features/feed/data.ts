@@ -1,5 +1,6 @@
 import { prisma } from "../../../prisma/prismaConfig.js"
-import { CreatePostParams } from "./types.js"
+import { CreatePostParams, GetFeedParams } from "./types.js"
+import { encodeCursor } from "./utils/cursor.js";
 
 export const createPost = async ({
     authorId,
@@ -25,3 +26,38 @@ export const createPost = async ({
         }
     })
 }
+
+export const getFeed = async ({ cursor, limit = 5 }: GetFeedParams) => {
+    const prismaCursor = cursor ? { createdAt: new Date(cursor.createdAt), id: cursor.id } : undefined;
+
+    const posts = await prisma.post.findMany({
+        orderBy: [
+            { createdAt: 'desc' },
+            { id: 'desc' },
+        ],
+        cursor: prismaCursor,
+        skip: prismaCursor ? 1 : 0,
+        take: limit + 1,
+
+        select: {
+            id: true,
+            title: true,
+            content: true,
+            createdAt: true,
+            author: { select: { id: true, username: true, bio: true } },
+            postTags: { select: { tags: { select: { name: true } } } },
+            _count: { select: { likes: true, favorites: true } },
+        },
+    });
+
+    const hasMore = posts.length > limit;
+    const data = hasMore ? posts.slice(0, limit) : posts;
+
+    const nextCursor = hasMore && data.length > 0
+        ? encodeCursor({
+            createdAt: data[data.length - 1].createdAt.toISOString(),
+            id: data[data.length - 1].id,
+        })
+        : null;
+    return { data, nextCursor, hasMore };
+};
