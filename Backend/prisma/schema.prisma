@@ -65,11 +65,12 @@ model Post {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
   deletedAt DateTime?
-  users     User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
   favorites Favorite[]
   postTags  PostTag[]
   likes     Like[]
 
+  @@index([createdAt(desc), id(desc)], name: "idx_posts_feed_cursor")
   @@index([createdAt(desc)])
   @@index([authorId], map: "idx_posts_author_id")
   @@map("posts")

@@ -14,7 +14,9 @@ export const FEED_ERROR_CODES = {
     POST_TAG_MAX_LENGTH: "POST_TAG_MAX_LENGTH",
 
     // Service Layer Error
-    POST_CREATION_FAILED: "POST_CREATION_FAILED"
+    POST_CREATION_FAILED: "POST_CREATION_FAILED",
+
+    FEED_RETRIEVAL_FAILED: "FEED_RETRIEVAL_FAILED"
 } as const
 
 export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
@@ -67,6 +69,11 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "POST_CREATION_FAILED",
         status: 500,
         message: "Failed to post your thought. Please try again."
+    },
+    FEED_RETRIEVAL_FAILED: {
+        code: "FEED_RETRIEVAL_FAILED",
+        status: 500,
+        message: "Failed to retrieve posts. Please try again."
     }
 }
 export type FeedErrorCode = keyof typeof FEED_ERROR_CODES
