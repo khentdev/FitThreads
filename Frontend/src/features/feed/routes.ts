@@ -8,7 +8,32 @@ export const feedRoutes: RouteRecordRaw[] = [
             {
                 path: '',
                 name: 'feed',
-                component: () => import("../feed/views/FeedView.vue"),
+                component: () => import("./views/Feed.vue"),
+            },
+            {
+                path: 'search',
+                name: 'search',
+                component: () => import("./views/Search.vue"),
+            },
+            {
+                path: 'create-post',
+                name: 'create-post',
+                component: () => import("./views/CreatePost.vue"),
+            },
+            {
+                path: 'profile',
+                name: 'profile',
+                component: () => import("./views/Profile.vue"),
+            },
+            {
+                path: 'profile/:userId',
+                name: 'user-profile',
+                component: () => import("./views/Profile.vue"),
+            },
+            {
+                path: 'settings',
+                name: 'settings',
+                component: () => import("./views/Settings.vue"),
             },
         ],
     },

@@ -2,12 +2,15 @@ import type { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axio
 import { axiosInstance } from './axiosConfig'
 import { getFingerprint } from '../utils/getFingerprint'
 import { getCookie } from '../utils/getCookieHelper'
+import { useAuthStore } from '../../features/auth/store/authStore'
 
 const onRequest = async (
     config: InternalAxiosRequestConfig
 ) => {
+    const authStore = useAuthStore()
     config.headers["X-Fingerprint"] = await getFingerprint()
     config.headers["X-CSRF-Token"] = getCookie("csrfToken")
+    config.headers["Authorization"] = `Bearer ${authStore.getAccessToken()}`
     return config
 }
 

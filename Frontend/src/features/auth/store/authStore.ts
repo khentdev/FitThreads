@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
-import { computed, reactive, readonly, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import type { AuthContext, AuthUserData, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse } from '../types'
 import { authService } from '../service'
-import { authErrorHandler } from '../errors/authErrorHandler'
+import { errorHandler } from '../../../core/errors/errorHandler'
 import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode, SendMagicLinkErrorCode, VerifyMagicLinkErrorCode, RefreshSessionErrorCode } from '../errors/authErrorCodes'
 import * as AUTH_CODES from '../errors/authErrorCodes'
 import type { AxiosError } from 'axios'
@@ -51,6 +51,10 @@ export const useAuthStore = defineStore('auth', () => {
     const getUserData = <T extends keyof AuthUserData>(type: T): AuthUserData[T] | null =>
         user.value?.type === type ? user.value?.userData as AuthUserData[T] : null
 
+    const getAccessToken = () => {
+        if (!user.value) return null
+        return (user.value.userData as any).accessToken
+    }
     const clearUser = () => {
         user.value = null
     }
@@ -80,7 +84,7 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true, verified: res.user.emailVerified }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<LoginErrorCode>>
-            const { message, code, type, error } = authErrorHandler<LoginErrorCode>(axiosErr)
+            const { message, code, type, error } = errorHandler<LoginErrorCode>(axiosErr)
             if (type === "offline") toast.error("Please check your internet connection and try again.", { title: "You are offline" })
             if (type === "timeout") errors.formError = message
             if (type === "server_error") errors.formError = message
@@ -115,7 +119,7 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true, email: res.email }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<SignupErrorCode>>
-            const { message, code, type } = authErrorHandler<SignupErrorCode>(axiosErr)
+            const { message, code, type } = errorHandler<SignupErrorCode>(axiosErr)
 
             if (type === "offline") toast.error("Please check your internet connection and try again.", { title: "You are offline" })
             if (type === "timeout") errors.formError = message
@@ -154,7 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true, redirect: null }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<VerifyOTPErrorCode>>
-            const { message, code, type } = authErrorHandler<VerifyOTPErrorCode>(axiosErr)
+            const { message, code, type } = errorHandler<VerifyOTPErrorCode>(axiosErr)
             if (type === "offline") toast.error("Please check your internet connection and try again.", { title: "You are offline" })
             if (type === "timeout") errors.formError = message
             if (type === "server_error") errors.formError = message
@@ -188,7 +192,7 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true, redirect: null }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<ResendOTPErrorCode>>
-            const { message, code, type } = authErrorHandler<ResendOTPErrorCode>(axiosErr)
+            const { message, code, type } = errorHandler<ResendOTPErrorCode>(axiosErr)
             if (type === "offline")
                 toast.error("Please check your internet connection and try again.", { title: "You are offline" })
 
@@ -223,7 +227,7 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<SendMagicLinkErrorCode>>
-            const { message, code, type, error } = authErrorHandler<SendMagicLinkErrorCode>(axiosErr)
+            const { message, code, type, error } = errorHandler<SendMagicLinkErrorCode>(axiosErr)
 
             if (type === "offline") errors.formError = message
             if (type === "timeout") errors.formError = message
@@ -253,7 +257,7 @@ export const useAuthStore = defineStore('auth', () => {
             return { success: true }
         } catch (err) {
             const axiosErr = err as AxiosError<ErrorResponse<VerifyMagicLinkErrorCode>>
-            const { message, code, type } = authErrorHandler<VerifyMagicLinkErrorCode>(axiosErr)
+            const { message, code, type } = errorHandler<VerifyMagicLinkErrorCode>(axiosErr)
 
             if (type === "offline") {
                 toast.error("Please check your internet connection and try again.", { title: "You are offline" })
@@ -310,7 +314,7 @@ export const useAuthStore = defineStore('auth', () => {
                     return { success: true, logout: false }
                 } catch (error) {
                     const axiosErr = error as AxiosError<ErrorResponse<RefreshSessionErrorCode>>
-                    const { code, type } = authErrorHandler<RefreshSessionErrorCode>(axiosErr)
+                    const { code, type } = errorHandler<RefreshSessionErrorCode>(axiosErr)
                     if (code === AUTH_CODES.SESSION_LOCK_IN_PROGRESS && attempt < MAX_RETRIES - 1) {
                         const baseDelay = 500
                         const maxDelay = 3000;
@@ -353,6 +357,7 @@ export const useAuthStore = defineStore('auth', () => {
     return {
         getUserData,
         hasAuthenticated,
+        getAccessToken,
         errors,
         setUser,
         clearUser,
