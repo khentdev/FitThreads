@@ -1,15 +1,8 @@
-export type Post = {
-    id: string
-    content: string
-    authorId: string
-    authorUsername: string
-    createdAt: string
-    likesCount: number
-    isLiked: boolean
-    isFavorited: boolean
+export type CreatePostParams = {
+    title: string;
+    content: string;
+    postTags: string[];
 }
-
-export type Tag = {
-    id: string
-    name: string
+export type CreatePostResponse = {
+    message: string
 }

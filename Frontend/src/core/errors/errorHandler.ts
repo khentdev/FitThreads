@@ -1,17 +1,14 @@
 import type { AxiosError } from "axios";
-import type { ErrorResponse, ErrorReturnType } from "../../../core/errors";
-import { getInfraErrorMessage } from "../../../core/infra/messages";
+import type { ErrorResponse, ErrorReturnType } from "../../core/errors";
+import { getInfraErrorMessage } from "../../core/infra/messages";
 
-export const authErrorHandler = <C extends string>(err: AxiosError<ErrorResponse<C>>): ErrorReturnType<C> => {
+export const errorHandler = <C extends string>(err: AxiosError<ErrorResponse<C>>): ErrorReturnType<C> => {
 
-    if (err.code === "ERR_CANCELED") {
+    if (err.code === "ERR_CANCELED")
         return { retryable: false, message: "Request was canceled", logout: false, type: "", error: err }
-    }
 
-    if (err?.code === "ECONNABORTED" || err.response?.status === 408) {
-        const message = "Request timeout. Please try again."
-        return { retryable: true, message, logout: false, type: "timeout", error: err }
-    }
+    if (err?.code === "ECONNABORTED" || err.response?.status === 408)
+        return { retryable: true, message: "Request timeout. Please try again.", logout: false, type: "timeout", error: err }
 
     if (!err.response || err.code === "ERR_NETWORK") {
         const msg = !navigator.onLine ? getInfraErrorMessage("INFRA_ERROR_OFFLINE") : getInfraErrorMessage("INFRA_ERROR_SERVER_UNREACHABLE")

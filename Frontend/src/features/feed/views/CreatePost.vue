@@ -1,28 +1,32 @@
 <template>
     <FeedViewLayout title="Create Post">
-        <div class="w-full flex-1 flex flex-col min-h-0 px-4 md:px-0">
-            <div class="flex-1 flex flex-col rounded-xl border border-border-muted bg-surface-app p-4 overflow-hidden">
+        <div class="flex flex-col flex-1 px-4 w-full min-h-0 md:px-0">
+            <div class="flex overflow-hidden flex-col flex-1 p-4 rounded-xl border border-border-muted bg-surface-app">
                 <div class="flex-none mb-4">
-                    <input v-model="title" type="text" placeholder="Title your thought..."
-                        class="w-full bg-transparent h-10 md:h-12 text-2xl md:text-3xl font-bold text-text-default placeholder:text-text-muted/30 outline-none border-l-2 border-transparent focus:border-solid-primary pl-0 focus:pl-3 transition-all duration-200 focus:placeholder:text-text-muted/50"
+                    <input v-model="title" type="text" placeholder="Title your thought..." @input="onTitleInput"
+                        id="titleInput"
+                        class="pl-0 w-full h-10 text-2xl font-bold bg-transparent border-l-2 border-transparent transition-all duration-200 outline-none md:h-12 md:text-3xl text-text-default placeholder:text-text-muted/30 focus:border-solid-primary focus:pl-3 focus:placeholder:text-text-muted/50"
                         maxlength="100" />
                 </div>
-
-                <div class="flex-1 flex flex-col min-h-0 mb-4">
+                <div class="flex flex-col flex-1 mb-4 min-h-0">
                     <textarea v-model="content" placeholder="Share something authentic. No fluff, just fitness."
-                        class="w-full flex-1 text-base md:text-lg leading-relaxed text-text-default placeholder:text-text-muted/30 resize-none outline-none bg-transparent border-l-2 border-transparent focus:border-solid-primary pl-0 focus:pl-3 transition-all duration-200 focus:placeholder:text-text-muted/50"
-                        maxlength="2000"></textarea>
+                        id="contentInput" @input="onContentInput"
+                        class="flex-1 pl-0 w-full text-base leading-relaxed bg-transparent border-l-2 border-transparent transition-all duration-200 outline-none resize-none md:text-lg text-text-default placeholder:text-text-muted/30 focus:border-solid-primary focus:pl-3 focus:placeholder:text-text-muted/50"></textarea>
                 </div>
                 <div class="flex-none pt-4 border-t border-border-muted/30">
+                    <div class="flex items-center mb-4 text-xs font-medium text-text-muted/60">
+                        {{ content.length }} / 500 chars
+                    </div>
                     <div class="space-y-4">
                         <div class="relative group">
-                            <div
-                                class="flex items-center gap-2 p-3 rounded-xl bg-surface-elevated focus-within:bg-transparent border border-border-muted/50 focus-within:border-solid-primary focus-within:ring-1 focus-within:ring-solid-primary/20 transition-all duration-200">
+                            <div :class="[tags.length >= 5 ? 'bg-surface-elevated/50 cursor-not-allowed opacity-60' : '']"
+                                class="flex gap-2 items-center p-3 rounded-xl border transition-all duration-200 focus-within:bg-transparent border-border-muted focus-within:border-solid-primary focus-within:ring-1 focus-within:ring-solid-primary/20">
+
                                 <Hash
-                                    class="w-4 h-4 text-text-muted group-focus-within:text-solid-primary transition-colors" />
-                                <input v-model="tagInput" @keydown.enter.prevent="addTag"
-                                    @keydown.space.prevent="addTag" type="text" placeholder="Tags (max 5)..."
-                                    class="flex-1 bg-transparent text-sm text-text-default placeholder:text-text-muted/50 outline-none border-none p-0 focus:ring-0"
+                                    class="transition-colors size-4 text-text-muted group-focus-within:text-solid-primary" />
+                                <input v-model="tagInput" @keydown.enter.prevent="addTag" type="text" id="tagInput"
+                                    placeholder="Tags (max 5)..."
+                                    class="flex-1 p-0 text-sm bg-transparent border-none outline-none text-text-default placeholder:text-text-muted/50 focus:ring-0"
                                     :disabled="tags.length >= 5" />
                                 <span class="text-xs font-medium text-text-muted/50">
                                     {{ tags.length }}/5
@@ -30,35 +34,37 @@
                             </div>
                         </div>
 
-                        <div v-if="tags.length > 0" class="flex flex-wrap gap-2 duration-200">
+                        <div v-if="tags.length > 0" class="flex flex-wrap gap-2 duration-200 break-all">
                             <span v-for="tag in tags" :key="tag"
-                                class="inline-flex items-center pl-3 pr-2 py-1 text-xs font-medium rounded-full bg-surface-elevated text-text-muted">
+                                class="inline-flex items-center py-1.5 pr-2 text-wrap pl-3 text-xs font-medium rounded-full bg-surface-elevated text-text-muted">
                                 #{{ tag }}
                                 <button @click="removeTag(tag)"
-                                    class="ml-2 p-0.5 rounded-full text-text-muted cursor-pointer">
-                                    <X class="w-3 h-3" />
+                                    class="p-0.5 ml-2 rounded-full cursor-pointer text-text-muted">
+                                    <X class="size-3" />
                                 </button>
                             </span>
                         </div>
 
-                        <div class="flex items-center justify-between pt-2">
-                            <div class="flex items-center gap-4 text-xs font-medium text-text-muted/60">
-                                <span :class="{ 'text-solid-primary': content.length > 1800 }">
-                                    {{ content.length }} chars
-                                </span>
-                            </div>
-
-                            <button @click="submitPost" :disabled="!isValid || isSubmitting"
+                        <div class="flex justify-end items-center pt-2">
+                            <button @click="handleCreatePost"
+                                :class="[feedStore.states.creatingPost ? 'opacity-50 cursor-not-allowed animate-pulse' : '']"
                                 class="flex items-center gap-2 py-2 px-6 bg-solid-primary hover:bg-solid-hover disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl shadow-sm shadow-solid-primary/20 transition-all active:scale-[0.98]">
-                                <span v-if="isSubmitting">Posting...</span>
-                                <span v-else>Post</span>
-                                <Send v-if="!isSubmitting" class="w-4 h-4" />
+                                <template v-if="feedStore.states.creatingPost">
+                                    <div class="flex items-center gap-2">
+                                        <Loader2 class="size-4 animate-spin" />
+                                        <span>Posting...</span>
+                                    </div>
+                                </template>
+                                <template v-else>
+                                    <span>Post</span>
+                                    <Send class="size-4" />
+                                </template>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
-            <p class="text-center text-xs text-text-muted/50 mt-4">
+            <p class="mt-4 text-xs text-center text-text-muted/50">
                 Share authentic thoughts. Inspire others.
             </p>
         </div>
@@ -66,58 +72,91 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, computed } from 'vue';
-    import { X, Hash, Send } from 'lucide-vue-next';
+    import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
+    import { X, Hash, Send, Loader2 } from 'lucide-vue-next';
     import FeedViewLayout from '../components/FeedViewLayout.vue';
+    import { useFeedStore } from '../store/feedStore';
+    import { onBeforeRouteLeave } from 'vue-router';
+    import { useRouter } from 'vue-router';
 
-    const emit = defineEmits<{
-        (e: 'post', data: { title: string; content: string; tags: string[] }): void;
-    }>();
+    const router = useRouter()
+    const feedStore = useFeedStore()
 
     const title = ref('');
     const content = ref('');
     const tagInput = ref('');
     const tags = ref<string[]>([]);
-    const isSubmitting = ref(false);
+    const hasUnsavedChanges = computed(() => title.value.trim() !== '' || content.value.trim() !== '' || tags.value.length > 0)
 
-    const isValid = computed(() => {
-        return title.value.trim().length > 0 && content.value.trim().length > 0;
-    });
+    const onTitleInput = (event: Event) => {
+        title.value = (event.target as HTMLInputElement).value
+            .replace(/\s+/g, ' ')
+            .slice(0, 100)
+    }
 
-    function addTag() {
-        const rawTag = tagInput.value.trim();
-        if (!rawTag) return;
+    const onContentInput = (event: Event) => {
+        content.value = (event.target as HTMLInputElement).value
+            .replace(/ {2,}/g, ' ')
+            .slice(0, 500)
+    }
 
-        // Remove # if present and clean up
-        const cleanTag = rawTag.replace(/^#/, '').trim().toLowerCase();
+    const addTag = () => {
+        let raw = tagInput.value.trim()
+        if (raw.length <= 0) return
+        if (raw.startsWith("#")) raw = raw.slice(1)
 
-        if (cleanTag && !tags.value.includes(cleanTag) && tags.value.length < 5) {
-            tags.value.push(cleanTag);
+        let cleanedInput = raw.replace(/[^a-zA-Z0-9_-]/g, "")
+        cleanedInput = cleanedInput.slice(0, 30)
+        if (!cleanedInput) return
+        if (tags.value.length >= 5) return
+        if (tags.value.includes(cleanedInput)) return
+        tags.value.push(cleanedInput)
+        tagInput.value = ''
+    }
+
+    const removeTag = (tag: string) => {
+        tags.value = tags.value.filter((t) => t !== tag)
+    }
+
+    const handleCreatePost = async () => {
+        const snapshot = {
+            title: title.value,
+            content: content.value,
+            tags: [...tags.value],
+            tagInput: tagInput.value
         }
-
-        tagInput.value = '';
-    }
-
-    function removeTag(tagToRemove: string) {
-        tags.value = tags.value.filter(tag => tag !== tagToRemove);
-    }
-
-    async function submitPost() {
-        if (!isValid.value || isSubmitting.value) return;
-
-        isSubmitting.value = true;
         try {
-            emit('post', {
-                title: title.value,
-                content: content.value,
-                tags: tags.value
-            });
-            // Reset form
-            title.value = '';
-            content.value = '';
-            tags.value = [];
-        } finally {
-            isSubmitting.value = false;
+            const { success } = await feedStore.createPost({ title: title.value, content: content.value, postTags: tags.value })
+            if (!success) throw new Error()
+            title.value = ''
+            content.value = ''
+            tags.value = []
+            tagInput.value = ''
+            await router.push({ name: 'feed' })
+        } catch {
+            title.value = snapshot.title
+            content.value = snapshot.content
+            tags.value = [...snapshot.tags]
+            tagInput.value = snapshot.tagInput
         }
     }
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        if (hasUnsavedChanges.value) {
+            e.preventDefault()
+        }
+    }
+    onMounted(() => {
+        window.addEventListener('beforeunload', handleBeforeUnload)
+    })
+    onBeforeUnmount(() => {
+        window.removeEventListener("beforeunload", handleBeforeUnload)
+    })
+
+    onBeforeRouteLeave((_, __, next) => {
+        if (!hasUnsavedChanges.value) return next()
+        const answer = window.confirm('You have unsaved changes. Are you sure you want to leave?')
+        if (answer) return next()
+        next(false)
+    })
 </script>

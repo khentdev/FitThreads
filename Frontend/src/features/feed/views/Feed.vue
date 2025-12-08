@@ -9,9 +9,14 @@
                     </div>
                 </div>
                 <div class="mb-4">
-                    <p class="text-[15px] leading-relaxed text-text-default">
+                    <p class="text-[15px] leading-relaxed text-text-default wrap-break-word">
                         Hit a new PR today! 405lbs deadlift. Consistency pays off. Remember: progressive overload
-                        isn't just about adding weight - it's about showing up every single day.
+                        isn't just about adding weight - it's about showing up every single day. Hit a new PR today!
+                        405lbs deadlift. Consistency pay Hit a new PR today! 405lbs deadlift. Consistency pays off.
+                        Remember: progressive overload
+                        isn't just about adding weight - it's about showing up every single day.s off. Remember:
+                        progressive overload
+                        isn't just about adding weight - it's about showing up every single day.p every single day.
                     </p>
                 </div>
 
