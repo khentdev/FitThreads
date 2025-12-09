@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.17",
-    "@tanstack/vue-query": "^5.92.0",
+    "@tanstack/vue-query": "^5.92.1",
     "@thumbmarkjs/thumbmarkjs": "^1.4.0",
     "@vueuse/core": "^14.1.0",
     "axios": "^1.13.2",
