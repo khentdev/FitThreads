@@ -61,8 +61,8 @@ describe("Create Post Integration Test", () => {
         expect(response.status).toBe(201)
         expect(json.message).toBe("Your fitness thought is now live!")
 
-        const post = await prisma.post.findFirst({ where: { authorId: user.id }, include: { postTags: { select: { tags: { select: { name: true } } }, orderBy: { tags: { name: "asc" } } } } })
-        const tagNames = post?.postTags.map((tag) => tag.tags.name)
+        const post = await prisma.post.findFirst({ where: { authorId: user.id }, include: { postTags: { select: { tag: { select: { name: true } } }, orderBy: { tag: { name: "asc" } } } } })
+        const tagNames = post?.postTags.map((tag) => tag.tag.name)
 
         expect(post).toBeDefined()
         expect(post?.postTags.length).toBe(5)
