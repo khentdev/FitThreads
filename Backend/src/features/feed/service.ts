@@ -1,7 +1,7 @@
 import { AppError } from "../../errors/customError.js";
 import logger from "../../lib/logger.js";
 import { createPost, getFeed } from "./data.js";
-import { CreatePostParams, GetFeedParams } from "./types.js";
+import { CreatePostParams, GetFeedParams, GetFeedResponseDTO } from "./types.js";
 
 export const createPostService = async ({ authorId, title, content, postTags }: CreatePostParams) => {
     try {
@@ -12,7 +12,7 @@ export const createPostService = async ({ authorId, title, content, postTags }: 
     }
 }
 
-export const getFeedService = async ({ cursor, limit }: GetFeedParams) => {
+export const getFeedService = async ({ cursor, limit }: GetFeedParams): Promise<GetFeedResponseDTO> => {
     try {
         const posts = await getFeed({ cursor, limit })
         return posts

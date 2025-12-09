@@ -27,3 +27,28 @@ export type GetFeedParams = {
     }
     limit?: number
 }
+
+export type GetFeedResponseDTO = {
+    data: {
+        title: string;
+        content: string;
+        postTags: {
+            tags: {
+                name: string;
+            };
+        }[];
+        id: string;
+        createdAt: Date;
+        author: {
+            id: string;
+            username: string;
+            bio: string | null;
+        };
+        _count: {
+            favorites: number;
+            likes: number;
+        };
+    }[];
+    nextCursor: string | null;
+    hasMore: boolean;
+}
