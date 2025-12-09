@@ -7,7 +7,7 @@ export const getSanitizedFeedQuery = (c: Context) => {
     const cursor = decodeCursor(rawCursor);
 
     const rawLimit = c.req.query('limit');
-    const limit = Math.min(Math.max(Number(rawLimit) || 5, 1), 10);
+    const limit = Math.min(Math.max(Number(rawLimit) || 20, 1), 20);
 
     logger.debug({ cursor, limit }, "Received queries: ");
     return { cursor, limit };

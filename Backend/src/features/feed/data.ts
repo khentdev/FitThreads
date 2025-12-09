@@ -15,7 +15,7 @@ export const createPost = async ({
             content: content,
             postTags: {
                 create: postTags.map((tag) => ({
-                    tags: {
+                    tag: {
                         connectOrCreate: {
                             where: { name: tag.toLowerCase() },
                             create: { name: tag.toLowerCase() }
@@ -27,7 +27,7 @@ export const createPost = async ({
     })
 }
 
-export const getFeed = async ({ cursor, limit = 5 }: GetFeedParams) => {
+export const getFeed = async ({ cursor, limit = 20 }: GetFeedParams) => {
     const prismaCursor = cursor ? { createdAt: new Date(cursor.createdAt), id: cursor.id } : undefined;
 
     const posts = await prisma.post.findMany({
@@ -45,7 +45,7 @@ export const getFeed = async ({ cursor, limit = 5 }: GetFeedParams) => {
             content: true,
             createdAt: true,
             author: { select: { id: true, username: true, bio: true } },
-            postTags: { select: { tags: { select: { name: true } } } },
+            postTags: { select: { tag: { select: { name: true } } } },
             _count: { select: { likes: true, favorites: true } },
         },
     });

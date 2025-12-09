@@ -33,7 +33,7 @@ export type GetFeedResponseDTO = {
         title: string;
         content: string;
         postTags: {
-            tags: {
+            tag: {
                 name: string;
             };
         }[];
