@@ -8,6 +8,7 @@ import type { CreatePostParams } from '../types'
 import { feedService } from '../service'
 import { useToast } from '../../../shared/composables/toast/useToast'
 import { reactive } from 'vue'
+import { useInfiniteQuery } from "@tanstack/vue-query"
 
 export const useFeedStore = defineStore('feed', () => {
     const { toast } = useToast()
@@ -42,8 +43,17 @@ export const useFeedStore = defineStore('feed', () => {
         }
     }
 
+    const getFeedQuery = useInfiniteQuery({
+        refetchOnWindowFocus: false,
+        queryKey: ["feed"],
+        queryFn: ({ pageParam }) => feedService.getFeedWithCursor({ cursor: pageParam, limit: 5 }),
+        initialPageParam: "",
+        getNextPageParam: (lastPage) => lastPage.nextCursor,
+    })
+
     return {
         createPost,
-        states
+        states,
+        getFeedQuery
     }
 })
