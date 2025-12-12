@@ -1,9 +1,0 @@
-# Feed Composables
-
-Place feed-specific composables here.
-
-Examples:
-- useFeed.ts
-- usePost.ts
-- useLike.ts
-- useFavorite.ts

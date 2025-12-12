@@ -18,7 +18,7 @@
                         <circle-alert class="self-start size-5 shrink-0" />
                         <p>{{
                             authStore.errors.usernameError || authStore.errors.formError
-                        }}</p>
+                            }}</p>
                     </div>
                 </div>
                 <div class="flex relative flex-col gap-2">
@@ -31,7 +31,7 @@
                         <circle-alert class="self-start size-5 shrink-0" />
                         <p>{{
                             authStore.errors.passwordError
-                        }}</p>
+                            }}</p>
                     </div>
                 </div>
                 <button :disabled="authStore.states.isLoggingIn"
@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
     import { Mail, Lock, CircleAlert } from "lucide-vue-next"
-    import { onBeforeRouteLeave, useRouter } from "vue-router";
+    import { onBeforeRouteLeave, useRouter, useRoute } from "vue-router";
     import AuthNavLink from "../components/AuthNavLink.vue"
     import { ref, watch } from "vue";
     import { useAuthStore } from "../store/authStore";
@@ -64,7 +64,8 @@
 
     const authStore = useAuthStore()
     const { setUnverifiedEmail, clearUnverifiedEmail } = useUnverifiedEmail()
-    const router = useRouter()
+    const router = useRouter();
+    const route = useRoute()
     const username = ref('')
     const password = ref('')
 
@@ -75,11 +76,13 @@
         const res = await authStore.loginUser(username.value, cachedPassword)
         if (res?.success && res.verified) {
             clearUnverifiedEmail()
-            router.push({ name: 'feed' })
+            const next = route.query["next"] as string
+            if (next && next.startsWith("/")) router.push(next)
+            else router.push({ name: "feed" })
         }
         else if (res?.verified === false && res.email) {
             setUnverifiedEmail(String(res.email))
-            router.push({ name: 'verify' })
+            router.push({ name: "verify" })
         }
     }
 

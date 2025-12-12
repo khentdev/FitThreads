@@ -21,16 +21,6 @@ export const feedRoutes: RouteRecordRaw[] = [
                 component: () => import("./views/CreatePost.vue"),
             },
             {
-                path: 'profile',
-                name: 'profile',
-                component: () => import("./views/Profile.vue"),
-            },
-            {
-                path: 'profile/:userId',
-                name: 'user-profile',
-                component: () => import("./views/Profile.vue"),
-            },
-            {
                 path: 'settings',
                 name: 'settings',
                 component: () => import("./views/Settings.vue"),

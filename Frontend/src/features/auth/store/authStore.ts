@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, ref } from 'vue'
-import type { AuthContext, AuthUserData, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse } from '../types'
+import type { AuthContext, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse } from '../types'
 import { authService } from '../service'
 import { errorHandler } from '../../../core/errors/errorHandler'
 import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode, SendMagicLinkErrorCode, VerifyMagicLinkErrorCode, RefreshSessionErrorCode } from '../errors/authErrorCodes'
@@ -48,13 +48,14 @@ export const useAuthStore = defineStore('auth', () => {
     ): void {
         user.value = { type, userData: data } as AuthContext
     }
-    const getUserData = <T extends keyof AuthUserData>(type: T): AuthUserData[T] | null =>
-        user.value?.type === type ? user.value?.userData as AuthUserData[T] : null
-
-    const getAccessToken = () => {
+    const getUsername = computed((): string | null => {
+        if (!user.value) return null
+        return (user.value.userData as any).user.username
+    })
+    const getAccessToken = computed((): string | null => {
         if (!user.value) return null
         return (user.value.userData as any).accessToken
-    }
+    })
     const clearUser = () => {
         user.value = null
     }
@@ -355,8 +356,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     return {
-        getUserData,
         hasAuthenticated,
+        getUsername,
         getAccessToken,
         errors,
         setUser,

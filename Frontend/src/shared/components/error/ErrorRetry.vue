@@ -18,7 +18,7 @@
 <script setup lang="ts">
     type Props = {
         title?: string;
-        message: string;
+        message?: string;
         retryable?: boolean;
         retryText?: string;
         isRetrying?: boolean
@@ -27,6 +27,7 @@
 
     const props = withDefaults(defineProps<Props>(), {
         title: '',
+        message: "Something went wrong. Please check your connection and try again.",
         retryable: true,
         retryText: 'Try Again',
     });

@@ -5,9 +5,8 @@
             message="Something went wrong. Please check your connection and try again."
             :is-retrying="query.isRefetching" :retryFn="handleTryAgain" />
 
-        <div v-else class="flex flex-col gap-4 px-4 md:px-0">
-            <div v-for="post in allPosts" :key="post.id"
-                class="p-5 rounded-xl border border-border-muted bg-surface-app">
+        <div v-else class="flex flex-col px-0">
+            <div v-for="post in allPosts" :key="post.id" class="p-5 border-b border-border-muted bg-surface-app">
                 <div class="flex gap-3 mb-3">
                     <div class="flex flex-col">
                         <span class="font-bold text-[15px] text-text-default">@{{ post.author.username }}</span>
@@ -26,9 +25,9 @@
                 </div>
 
                 <div v-if="post.postTags.length > 0" class="flex flex-wrap gap-2 mb-4">
-                    <span v-for="tag in post.postTags" :key="tag.tags.name"
+                    <span v-for="tag in post.postTags" :key="tag.tag.name"
                         class="px-3 py-1 text-xs font-medium rounded-full bg-surface-elevated text-text-muted">
-                        #{{ tag.tags.name }}
+                        #{{ tag.tag.name }}
                     </span>
                 </div>
 
@@ -55,7 +54,7 @@
 
             <button v-if="query.hasNextPage" @click="handleLoadMore"
                 :disabled="!query.hasNextPage || query.isFetchingNextPage"
-                class="mt-4 px-6 py-3 rounded-xl border border-border-muted bg-surface-app text-text-default font-medium transition-colors hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
+                class="mt-4 px-6 py-3 mx-4 rounded-xl border border-border-muted bg-surface-app text-text-default font-medium transition-colors hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
                 {{ query.isFetchingNextPage ? 'Loading...' : 'Load More' }}
             </button>
         </div>
@@ -68,8 +67,9 @@
     import ErrorRetry from '../../../shared/components/error/ErrorRetry.vue';
     import EmptyState from '../../../shared/components/empty/EmptyState.vue';
     import { Flame, Bookmark } from 'lucide-vue-next';
-    import { useFeedStore } from '../store/feedStore';
     import { computed } from 'vue';
+    import { useFeedStore } from '../store/feedStore';
+
 
     const feedStore = useFeedStore();
     const query = feedStore.getFeedQuery;
