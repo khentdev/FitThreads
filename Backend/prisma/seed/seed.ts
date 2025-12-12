@@ -14,6 +14,7 @@ async function main() {
             hashedPassword: "dummy_hashed_password",
             bio: "Built this place with sweat and code 💪",
             isAdmin: true,
+            emailVerified: true
         },
     });
 
@@ -103,7 +104,7 @@ async function main() {
                 authorId: seedUser.id,
                 postTags: {
                     create: selectedTags.map(tag => ({
-                        tags: { connect: { id: tag.id } },
+                        tag: { connect: { id: tag.id } },
                     })),
                 },
             },
