@@ -16,7 +16,7 @@ export type GetFeedWithCursorResponse = {
         title: string;
         content: string;
         postTags: {
-            tags: {
+            tag: {
                 name: string;
             };
         }[];

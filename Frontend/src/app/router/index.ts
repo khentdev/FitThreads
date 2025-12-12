@@ -34,11 +34,9 @@ router.beforeEach(async (to, from, next) => {
     const isAuthPages = to.matched.some(r => r.meta['authPages'])
     if (isAuthPages) return next()
 
-    if (!authStore.states.sessionInitialized) {
-        const session = await authStore.refreshSession()
-        if (!session || (!session?.success && session?.logout))
-            return next({ name: 'feed' })
-    }
+    if (!authStore.states.sessionInitialized)
+        await authStore.refreshSession()
+
     return next()
 })
 
