@@ -10,7 +10,7 @@ const onRequest = async (
     const authStore = useAuthStore()
     config.headers["X-Fingerprint"] = await getFingerprint()
     config.headers["X-CSRF-Token"] = getCookie("csrfToken")
-    config.headers["Authorization"] = `Bearer ${authStore.getAccessToken()}`
+    config.headers["Authorization"] = `Bearer ${authStore.getAccessToken}`
     return config
 }
 
