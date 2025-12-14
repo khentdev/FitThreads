@@ -12,9 +12,9 @@ export const createPostService = async ({ authorId, title, content, postTags }: 
     }
 }
 
-export const getFeedService = async ({ cursor, limit }: GetFeedParams): Promise<GetFeedResponseDTO> => {
+export const getFeedService = async ({ cursor, limit, username, search, sortBy }: GetFeedParams): Promise<GetFeedResponseDTO> => {
     try {
-        const posts = await getFeed({ cursor, limit })
+        const posts = await getFeed({ cursor, limit, username, search, sortBy })
         return posts
     } catch (err) {
         logger.error({ error: err }, "Failed to get feed.")

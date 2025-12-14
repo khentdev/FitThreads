@@ -10,7 +10,7 @@ export const createPostController = async (c: Context<{ Variables: CreatePostPar
 }
 
 export const getFeedController = async (c: Context) => {
-    const { cursor, limit } = getSanitizedFeedQuery(c)
-    const result = await getFeedService({ cursor, limit })
+    const { cursor, limit, sortBy, search, username } = getSanitizedFeedQuery(c)
+    const result = await getFeedService({ cursor, limit, sortBy, search, username })
     return c.json(result, 200)
 }

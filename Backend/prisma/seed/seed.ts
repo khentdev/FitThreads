@@ -49,6 +49,8 @@ async function main() {
                 email: faker.internet.email(),
                 hashedPassword: "fake_hashed_" + faker.string.uuid(),
                 bio: faker.person.bio(),
+                emailVerified: true,
+                isAdmin: false,
             },
         });
         fakeUsers.push(user);
@@ -101,7 +103,7 @@ async function main() {
             data: {
                 title: data.title,
                 content: data.content,
-                authorId: seedUser.id,
+                authorId: faker.helpers.arrayElement(fakeUsers).id,
                 postTags: {
                     create: selectedTags.map(tag => ({
                         tag: { connect: { id: tag.id } },
