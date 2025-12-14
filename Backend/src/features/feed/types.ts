@@ -22,10 +22,12 @@ export type CreatePostParamsVariables = {
 
 export type GetFeedParams = {
     cursor?: {
-        createdAt: string,
         id: string
     }
     limit?: number
+    sortBy?: "recent" | "top"
+    search?: string
+    username?: string
 }
 
 export type GetFeedResponseDTO = {

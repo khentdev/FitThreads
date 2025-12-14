@@ -1,4 +1,4 @@
-import { prisma } from "../../../prisma/prismaConfig.js"
+import { Prisma, prisma } from "../../../prisma/prismaConfig.js"
 import { CreatePostParams, GetFeedParams } from "./types.js"
 import { encodeCursor } from "./utils/cursor.js";
 
@@ -13,6 +13,7 @@ export const createPost = async ({
             authorId: authorId,
             title: title,
             content: content,
+
             postTags: {
                 create: postTags.map((tag) => ({
                     tag: {
@@ -27,18 +28,47 @@ export const createPost = async ({
     })
 }
 
-export const getFeed = async ({ cursor, limit = 20 }: GetFeedParams) => {
-    const prismaCursor = cursor ? { createdAt: new Date(cursor.createdAt), id: cursor.id } : undefined;
+
+export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, username }: GetFeedParams) => {
+    const prismaCursor = cursor ? { id: cursor.id } : undefined;
+
+    const prismaWhereClause: Prisma.PostWhereInput = search ? {
+        author: {
+            isAdmin: false
+        },
+        deletedAt: null,
+        OR: [
+            { title: { search } },
+            { content: { search } },
+            { author: { username: { search } } },
+            { postTags: { some: { tag: { name: { search } } } } }
+        ]
+    } : {
+        // username is used only for getting posts from a specific user, 
+        // if username exists -> getting posts from a specific user
+        // else -> getting posts from all users
+        ...(username ? { author: { username, isAdmin: false } } : { author: { isAdmin: false } }),
+        deletedAt: null,
+    }
+
+    const sortByClause: Prisma.PostOrderByWithRelationInput[] = search ?
+        [{
+            _relevance: {
+                search,
+                fields: ["title", "content"],
+                sort: "desc"
+            }
+        },
+        sortBy === "top" ? { likes: { _count: "desc" } } : { createdAt: "desc" },
+        ] :
+        [{ createdAt: "desc", }]
 
     const posts = await prisma.post.findMany({
-        orderBy: [
-            { createdAt: 'desc' },
-            { id: 'desc' },
-        ],
+        where: prismaWhereClause,
+        orderBy: sortByClause,
         cursor: prismaCursor,
         skip: prismaCursor ? 1 : 0,
         take: limit + 1,
-
         select: {
             id: true,
             title: true,
@@ -52,10 +82,8 @@ export const getFeed = async ({ cursor, limit = 20 }: GetFeedParams) => {
 
     const hasMore = posts.length > limit;
     const data = hasMore ? posts.slice(0, limit) : posts;
-
     const nextCursor = hasMore && data.length > 0
         ? encodeCursor({
-            createdAt: data[data.length - 1].createdAt.toISOString(),
             id: data[data.length - 1].id,
         })
         : null;
