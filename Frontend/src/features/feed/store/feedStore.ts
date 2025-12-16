@@ -1,14 +1,12 @@
 import { defineStore } from 'pinia'
 import { errorHandler, } from '../../../core/errors/errorHandler'
 import type { AxiosError } from 'axios'
-import type { FeedErrorCode } from '../errors/FeedErrorCodes'
-import * as FEED_ERROR_CODES from '../errors/FeedErrorCodes'
 import type { ErrorResponse } from '../../../core/errors'
 import type { CreatePostParams } from '../types'
 import { feedService } from '../service'
 import { useToast } from '../../../shared/composables/toast/useToast'
 import { reactive } from 'vue'
-import { useInfiniteQuery } from "@tanstack/vue-query"
+import * as FEED_ERROR_CODES from '../errors/feedErrorCodes'
 
 export const useFeedStore = defineStore('feed', () => {
     const { toast } = useToast()
@@ -25,7 +23,7 @@ export const useFeedStore = defineStore('feed', () => {
             toast.success(res.message)
             return { success: true }
         } catch (err) {
-            const error = err as AxiosError<ErrorResponse<FeedErrorCode>>
+            const error = err as AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>
             const { type, code, message } = errorHandler(error)
             const codes = [FEED_ERROR_CODES.TITLE_MIN_LENGTH,
             FEED_ERROR_CODES.CONTENT_MIN_LENGTH,
@@ -43,17 +41,8 @@ export const useFeedStore = defineStore('feed', () => {
         }
     }
 
-    const getFeedQuery = useInfiniteQuery({
-        refetchOnWindowFocus: false,
-        queryKey: ["feed"],
-        queryFn: ({ pageParam }) => feedService.getFeedWithCursor({ cursor: pageParam, limit: 5 }),
-        initialPageParam: "",
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
-    })
-
     return {
         createPost,
-        states,
-        getFeedQuery
+        states
     }
 })

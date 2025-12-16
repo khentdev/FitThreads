@@ -7,5 +7,5 @@ export const profileService = {
     getProfile: async (username: string) => {
         const res = await axiosInstance.get(`/profile/${username}`);
         return getTypedResponse<UserProfile>(res)
-    }
+    },
 }

@@ -1,7 +1,7 @@
 <template>
     <FeedViewLayout title="Create Post">
-        <div class="flex flex-col flex-1 px-4 w-full min-h-0 md:px-0">
-            <div class="flex overflow-hidden flex-col flex-1 p-4 rounded-xl border border-border-muted bg-surface-app">
+        <div class="flex flex-col flex-1 w-full min-h-0 md:px-0">
+            <div class="flex overflow-hidden flex-col flex-1 p-4 md:rounded-xl border-none bg-surface-app">
                 <div class="flex-none mb-4">
                     <input v-model="title" type="text" placeholder="Title your thought..." @input="onTitleInput"
                         id="titleInput"
@@ -77,9 +77,7 @@
     import FeedViewLayout from '../components/FeedViewLayout.vue';
     import { useFeedStore } from '../store/feedStore';
     import { onBeforeRouteLeave } from 'vue-router';
-    import { useRouter } from 'vue-router';
 
-    const router = useRouter()
     const feedStore = useFeedStore()
 
     const title = ref('');
@@ -132,7 +130,6 @@
             content.value = ''
             tags.value = []
             tagInput.value = ''
-            await router.push({ name: 'feed' })
         } catch {
             title.value = snapshot.title
             content.value = snapshot.content

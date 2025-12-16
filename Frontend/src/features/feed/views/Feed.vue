@@ -1,20 +1,24 @@
 <template>
     <FeedViewLayout title="Feed">
-        <PostSkeleton v-if="query.isPending" :count="5" />
-        <ErrorRetry v-else-if="query.isError"
+        <PostSkeleton v-if="query.isPending.value" :count="5" />
+        <ErrorRetry v-else-if="query.isError.value"
             message="Something went wrong. Please check your connection and try again."
-            :is-retrying="query.isRefetching" :retryFn="handleTryAgain" />
-
+            :is-retrying="query.isRefetching.value" :retryFn="handleTryAgain" />
+        <EmptyState v-else-if="allPosts.length === 0" title="No posts yet"
+            message="Be the first to share your fitness thoughts." />
         <div v-else class="flex flex-col px-0">
-            <div v-for="post in allPosts" :key="post.id" class="p-5 border-b border-border-muted bg-surface-app">
+            <div v-for="post in allPosts" :key="post.id"
+                class="p-5 rounded-xl rounded-b-none border-b border-border-muted bg-surface-app">
                 <div class="flex gap-3 mb-3">
                     <div class="flex flex-col">
-                        <span class="font-bold text-[15px] text-text-default">@{{ post.author.username }}</span>
+                        <span @click="router.push({ name: 'profile', params: { username: post.author.username } })"
+                            class="font-bold text-[15px] text-text-default hover:underline hover:underline-offset-1 cursor-pointer active:text-text-muted transition-colors">@{{
+                                post.author.username }}</span>
                         <span class="text-xs text-text-muted">{{ formatDate(post.createdAt) }}</span>
                     </div>
                 </div>
 
-                <h2 class="text-lg font-bold text-text-default mb-2 wrap-break-word">
+                <h2 class="mb-2 text-lg font-bold text-text-default wrap-break-word">
                     {{ post.title }}
                 </h2>
 
@@ -24,7 +28,7 @@
                     </p>
                 </div>
 
-                <div v-if="post.postTags.length > 0" class="flex flex-wrap gap-2 mb-4">
+                <div class="flex flex-wrap gap-2 mb-4">
                     <span v-for="tag in post.postTags" :key="tag.tag.name"
                         class="px-3 py-1 text-xs font-medium rounded-full bg-surface-elevated text-text-muted">
                         #{{ tag.tag.name }}
@@ -45,17 +49,13 @@
                 </div>
             </div>
 
-            <EmptyState v-if="allPosts.length === 0" title="No posts yet"
-                message="Be the first to share your fitness thoughts." />
-
-            <EmptyState v-else-if="!query.hasNextPage && allPosts.length > 0" title="You're all caught up!"
+            <EmptyState v-if="!query.hasNextPage.value && allPosts.length > 0" title="You're all caught up!"
                 message="That's all the posts for now. Check back later for more fitness thoughts."
                 :show-icon="false" />
-
-            <button v-if="query.hasNextPage" @click="handleLoadMore"
-                :disabled="!query.hasNextPage || query.isFetchingNextPage"
-                class="mt-4 px-6 py-3 mx-4 rounded-xl border border-border-muted bg-surface-app text-text-default font-medium transition-colors hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ query.isFetchingNextPage ? 'Loading...' : 'Load More' }}
+            <button v-if="query.hasNextPage.value" @click="handleLoadMore"
+                :disabled="!query.hasNextPage.value || query.isFetchingNextPage.value"
+                class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
+                {{ query.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
             </button>
         </div>
     </FeedViewLayout>
@@ -66,26 +66,27 @@
     import PostSkeleton from '../../../shared/components/skeleton/PostSkeleton.vue';
     import ErrorRetry from '../../../shared/components/error/ErrorRetry.vue';
     import EmptyState from '../../../shared/components/empty/EmptyState.vue';
+    import { useRouter } from 'vue-router';
     import { Flame, Bookmark } from 'lucide-vue-next';
     import { computed } from 'vue';
-    import { useFeedStore } from '../store/feedStore';
+    import { useMainFeed } from '../composables';
+    import type { GetFeedWithCursorResponse } from '../types';
 
-
-    const feedStore = useFeedStore();
-    const query = feedStore.getFeedQuery;
+    const router = useRouter()
+    const query = useMainFeed('recent');
 
     const allPosts = computed(() => {
-        if (!query.data?.pages) return [];
-        return query.data.pages.flatMap(post => post.data)
+        if (!query.data.value?.pages) return [];
+        return query.data.value.pages.flatMap((page: GetFeedWithCursorResponse) => page.data)
     });
 
     const handleLoadMore = () => {
-        if (query.isFetchingNextPage || !query.hasNextPage) return;
+        if (query.isFetchingNextPage.value || !query.hasNextPage.value) return;
         query.fetchNextPage()
     }
 
     const handleTryAgain = () => {
-        if (query.isRefetching) return;
+        if (query.isRefetching.value) return;
         query.refetch();
     }
 

@@ -7,9 +7,17 @@ export type CreatePostResponse = {
     message: string
 }
 
+export type FeedFilters = {
+    username?: string
+    search?: string
+    sortBy?: "recent" | "top"
+}
 export type GetFeedWithCursorQuery = {
     cursor?: string
     limit?:number
+    username?: string
+    search?: string
+    sortBy?: "recent" | "top" 
 }
 export type GetFeedWithCursorResponse = {
     data: {
