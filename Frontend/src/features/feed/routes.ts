@@ -4,6 +4,7 @@ export const feedRoutes: RouteRecordRaw[] = [
     {
         path: '/',
         component: () => import("../../app/layouts/FeedLayout.vue"),
+        redirect: { name: 'feed' },
         children: [
             {
                 path: '',
