@@ -6,7 +6,7 @@ import router from './app/router'
 import { setupAxiosInterceptors } from './core/api/axiosInterceptor'
 import { VueQueryPlugin } from '@tanstack/vue-query'
 
-setupAxiosInterceptors()
+setupAxiosInterceptors(router)
 
 const app = createApp(App)
 const pinia = createPinia()
