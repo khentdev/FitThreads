@@ -9,6 +9,7 @@ export const profileRoutes: RouteRecordRaw[] = [
                 path: '',
                 component: () => import("./views/Profile.vue"),
                 name: 'profile',
+                redirect: { name: 'profile-thoughts' },
                 children: [
                     {
                         path: '',

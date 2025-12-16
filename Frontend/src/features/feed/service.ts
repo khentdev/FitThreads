@@ -6,8 +6,8 @@ export const feedService = {
         const res = await axiosInstance.post("/feed/create-post", { title, content, postTags })
         return getTypedResponse<CreatePostResponse>(res)
     },
-    getFeedWithCursor: async ({ cursor, limit }: GetFeedWithCursorQuery) => {
-        const res = await axiosInstance.get("/feed", { params: { cursor, limit } })
+    getFeedWithCursor: async ({ cursor, limit, username, search, sortBy }: GetFeedWithCursorQuery) => {
+        const res = await axiosInstance.get("/feed", { params: { cursor, limit, username, search, sortBy } })
         return getTypedResponse<GetFeedWithCursorResponse>(res)
     }
 }

@@ -20,8 +20,6 @@ export const useProfileStore = defineStore('profile', () => {
 
     const currentViewedUsername = ref<string | null>(null);
     const setViewedProfile = (username: string) => {
-        console.log(username)
-        console.log(authStore.getUsername)
         currentViewedUsername.value = username;
     };
     const isOwnProfile = computed(() => currentViewedUsername.value === authStore.getUsername);
