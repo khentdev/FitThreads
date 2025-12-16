@@ -10,7 +10,7 @@
                         :class="[
                             isExactActive || link.isOwnProfile?.value ? 'text-text-default' : 'text-text-muted',
                             link.activeBg ? 'bg-surface-elevated' : '',
-                        ]" :aria-label="link.label" @click.prevent="() => navigate()">
+                        ]" :aria-label="link.label" @click.prevent="handleNavClick(link, navigate)">
                         <component :is="link.icon" class="transition-all duration-200 size-7" :class="[
                             isExactActive || link.isOwnProfile?.value ? 'text-text-default stroke-3' : 'text-text-muted group-hover:text-text-default group-hover:stroke-3'
                         ]" />
@@ -33,15 +33,18 @@
                 </RouterLink>
             </template>
         </nav>
+
+        <LoginModalPopup :is-open="modal.isOpen" :context="modal.context" @close="closeModal" />
     </aside>
 </template>
 
 <script setup lang="ts">
     import { Home, Search, Plus, Settings, User } from 'lucide-vue-next'
     import { useAuthStore } from '../../auth/store/authStore';
-    import { computed, ref, watch } from 'vue';
+    import { computed, reactive, ref, watch } from 'vue';
     import { useRoute } from 'vue-router';
-
+    import LoginModalPopup from '../../../shared/components/LoginModalPopup.vue';
+    import type { LoginModalPopupProps } from '../../../shared/components/LoginModalPopup.vue';
 
     const authStore = useAuthStore()
     const route = useRoute()
@@ -51,7 +54,39 @@
         isOwnProfile.value = username === routeUsername
     }, { immediate: true })
 
-    const navigationLinks = [
+    const modal = reactive<{
+        isOpen: boolean;
+        context: LoginModalPopupProps['context'];
+    }>({
+        isOpen: false,
+        context: 'create-post'
+    })
+
+    const closeModal = (): void => {
+        modal.isOpen = false
+    }
+
+    const handleNavClick = (link: NavigationLink, navigate: () => void): void => {
+        const requiresAuth = link.name === 'create-post' || link.name === 'profile'
+        if (requiresAuth && !authStore.hasAuthenticated) {
+            modal.context = link.name as LoginModalPopupProps['context']
+            modal.isOpen = true
+            return
+        }
+        navigate()
+    }
+
+    type NavigationLink = {
+        name: string;
+        icon: any;
+        label: string;
+        activeBg?: boolean;
+        toBottom?: boolean;
+        isOwnProfile?: any;
+        param?: any;
+    }
+
+    const navigationLinks: NavigationLink[] = [
         {
             name: 'feed',
             icon: Home,
@@ -73,7 +108,10 @@
             icon: User,
             label: 'Profile',
             isOwnProfile,
-            param: computed(() => authStore.getUsername)
+            param: computed(() => {
+                if (authStore.getUsername) return authStore.getUsername
+                return 'unknown'
+            })
         },
         {
             name: 'settings',
