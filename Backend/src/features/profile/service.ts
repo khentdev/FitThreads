@@ -1,7 +1,7 @@
 import { AppError } from "../../errors/customError.js";
 import logger from "../../lib/logger.js";
-import { getUserProfile } from "./data.js";
-import type { getUserProfileResponseDTO } from "./types.js";
+import { getUserProfile, searchProfiles } from "./data.js";
+import type { getUserProfileResponseDTO, SearchProfilesResponseDTO } from "./types.js";
 
 export const getUserProfileService = async (username: string): Promise<getUserProfileResponseDTO> => {
     try {
@@ -12,5 +12,15 @@ export const getUserProfileService = async (username: string): Promise<getUserPr
         if (err instanceof AppError) throw err;
         logger.error({ error: err, username }, "Failed to get user profile.")
         throw new AppError("PROFILE_RETRIEVAL_FAILED", { field: "username" })
+    }
+}
+
+export const searchProfilesService = async (searchQuery: string, limit = 20, cursor?: string): Promise<SearchProfilesResponseDTO> => {
+    try {
+        const profiles = await searchProfiles(searchQuery, limit, cursor);
+        return profiles;
+    } catch (err) {
+        logger.error({ error: err, searchQuery, limit }, "Failed to search profiles.")
+        throw new AppError("PROFILE_SEARCH_FAILED", { field: "search_profiles" })
     }
 }

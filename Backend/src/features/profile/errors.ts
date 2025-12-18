@@ -4,6 +4,7 @@ export const PROFILE_ERROR_CODES = {
     INVALID_USERNAME_FORMAT: "INVALID_USERNAME_FORMAT",
     USER_NOT_FOUND: "USER_NOT_FOUND",
     PROFILE_RETRIEVAL_FAILED: "PROFILE_RETRIEVAL_FAILED",
+    PROFILE_SEARCH_FAILED: "PROFILE_SEARCH_FAILED",
 } as const
 
 export const PROFILE_ERROR_DEF: Record<ProfileErrorCode, ErrorDefinitions> = {
@@ -21,6 +22,11 @@ export const PROFILE_ERROR_DEF: Record<ProfileErrorCode, ErrorDefinitions> = {
         code: "PROFILE_RETRIEVAL_FAILED",
         status: 500,
         message: "Failed to retrieve profile. Please try again."
+    },
+    PROFILE_SEARCH_FAILED: {
+        code: "PROFILE_SEARCH_FAILED",
+        status: 500,
+        message: "Failed to search profiles. Please try again."
     },
 }
 

@@ -19,7 +19,7 @@ export const SESSION_ERROR_DEF: Record<SessionErrorCode, ErrorDefinitions> = {
     },
     SESSION_REFRESH_FAILED: {
         code: "SESSION_REFRESH_FAILED",
-        status: 500,
+        status: 401,
         message: "We couldn't refresh your session. Please log in again."
     },
     SESSION_LOCK_IN_PROGRESS: {

@@ -1,3 +1,5 @@
+import { FeedCursor } from "./utils/cursor.js"
+
 export type CreatePostParams = {
     authorId: string,
     title: string,
@@ -54,3 +56,40 @@ export type GetFeedResponseDTO = {
     nextCursor: string | null;
     hasMore: boolean;
 }
+export type GetFavoritedPostsParams = {
+    username: string,
+    cursor?: string,
+    limit?: number
+}
+export type GetUserFavoritesParams = {
+    username: string,
+    decodedCursor?: FeedCursor,
+    limit?: number
+}
+export type getUserFavoritesResponseDTO = {
+    data: {
+        post: {
+            id: string;
+            title: string;
+            content: string;
+            createdAt: Date;
+            author: {
+                id: string;
+                username: string;
+                bio: string | null;
+            };
+            postTags: {
+                tag: {
+                    name: string;
+                };
+            }[];
+            _count: {
+                favorites: number;
+                likes: number;
+            };
+        };
+        createdAt: Date;
+    }[];
+    nextCursor: string | null;
+    hasMore: boolean;
+} | null
