@@ -1,6 +1,7 @@
 import { Prisma, prisma } from "../../../prisma/prismaConfig.js"
-import { CreatePostParams, GetFeedParams } from "./types.js"
-import { encodeCursor } from "./utils/cursor.js";
+import { CreatePostParams, GetFeedParams, GetUserFavoritesParams, getUserFavoritesResponseDTO } from "./types.js"
+import { encodeCursor } from "../../lib/cursor.js";
+import { encodeCursor as encodeFeedCursor, FeedCursor } from "./utils/cursor.js";
 
 export const createPost = async ({
     authorId,
@@ -89,3 +90,64 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
         : null;
     return { data, nextCursor, hasMore };
 };
+
+
+
+export const getUserFavorites = async ({ username, decodedCursor, limit = 20 }: GetUserFavoritesParams): Promise<getUserFavoritesResponseDTO> => {
+    const user = await prisma.user.findUnique({
+        where: { username },
+        select: { id: true }
+    });
+
+    if (!user) return null
+
+    const prismaCursor = decodedCursor ? {
+        userId_postId: {
+            userId: user.id,
+            postId: decodedCursor.id
+        }
+    } : undefined;
+
+    const favorites = await prisma.favorite.findMany({
+        where: {
+            userId: user.id
+        },
+        orderBy: [
+            { createdAt: 'desc' },
+            { postId: 'desc' }
+        ],
+        cursor: prismaCursor,
+        skip: prismaCursor ? 1 : 0,
+        take: limit + 1,
+        select: {
+            createdAt: true,
+            post: {
+                select: {
+                    id: true,
+                    title: true,
+                    content: true,
+                    createdAt: true,
+                    author: { select: { id: true, username: true, bio: true } },
+                    postTags: { select: { tag: { select: { name: true } } } },
+                    _count: { select: { likes: true, favorites: true } },
+                }
+            }
+        }
+    });
+
+    const hasMore = favorites.length > limit;
+    const data = hasMore ? favorites.slice(0, limit) : favorites;
+
+    const nextCursor = hasMore && data.length > 0
+        ? encodeFeedCursor({
+            id: data[data.length - 1].post.id,
+            createdAt: data[data.length - 1].createdAt
+        })
+        : null;
+
+    return {
+        data,
+        nextCursor,
+        hasMore
+    };
+}

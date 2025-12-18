@@ -1,8 +1,8 @@
 generator client {
-  provider   = "prisma-client"
-  engineType = "client"
-  output     = "../generated/prisma"
-  previewFeatures = ["fullTextSearchPostgres"]
+  provider        = "prisma-client"
+  engineType      = "client"
+  output          = "../generated/prisma"
+  previewFeatures = ["fullTextSearchPostgres", "postgresqlExtensions"]
 }
 
 datasource db {
@@ -27,6 +27,9 @@ model User {
 
   @@unique([username])
   @@unique([email])
+  @@index([bio(ops: raw("gin_trgm_ops"))], type: Gin, name: "idx_users_bio_trgm")
+  @@index([username(ops: raw("gin_trgm_ops"))], type: Gin, name: "idx_users_username_trgm")
+  @@index([username(sort: Asc), id(sort: Asc)], name: "idx_users_username_asc")
   @@map("users")
 }
 

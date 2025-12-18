@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import logger from '../../../lib/logger.js';
-import { decodeCursor } from './cursor.js';
+import { decodeCursor } from '../../../lib/cursor.js';
 
 export const getSanitizedFeedQuery = (c: Context) => {
     const rawCursor = c.req.query('cursor');

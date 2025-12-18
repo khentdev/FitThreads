@@ -17,7 +17,9 @@ export const FEED_ERROR_CODES = {
     // Service Layer Error
     POST_CREATION_FAILED: "POST_CREATION_FAILED",
 
-    FEED_RETRIEVAL_FAILED: "FEED_RETRIEVAL_FAILED"
+    FEED_RETRIEVAL_FAILED: "FEED_RETRIEVAL_FAILED",
+    USER_NOT_FOUND: "USER_NOT_FOUND",
+    FAVORITED_POSTS_RETRIEVAL_FAILED: "FAVORITED_POSTS_RETRIEVAL_FAILED"
 } as const
 
 export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
@@ -80,6 +82,16 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "FEED_RETRIEVAL_FAILED",
         status: 500,
         message: "Failed to retrieve posts. Please try again."
+    },
+    USER_NOT_FOUND: {
+        code: "USER_NOT_FOUND",
+        status: 404,
+        message: "User not found."
+    },
+    FAVORITED_POSTS_RETRIEVAL_FAILED: {
+        code: "FAVORITED_POSTS_RETRIEVAL_FAILED",
+        status: 500,
+        message: "Failed to retrieve favorited posts. Please try again."
     }
 }
 export type FeedErrorCode = keyof typeof FEED_ERROR_CODES
