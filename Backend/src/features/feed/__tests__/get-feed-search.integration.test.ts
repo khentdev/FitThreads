@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../../../createApp.js";
 import { prisma } from "../../../../prisma/prismaConfig.js";
-import { faker } from "@faker-js/faker";
 
 type PostSeed = {
     title: string;

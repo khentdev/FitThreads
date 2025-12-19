@@ -30,6 +30,7 @@ export type GetFeedParams = {
     sortBy?: "recent" | "top"
     search?: string
     username?: string
+    excludeUserId?: string
 }
 
 export type GetFeedResponseDTO = {

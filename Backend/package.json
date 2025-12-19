@@ -9,7 +9,7 @@
     "start": "node dist/server.js",
     "test": "dotenv -e .env.test -- npx prisma db push --accept-data-loss && dotenv -e .env.test -- vitest run",
     "db:test:up": "docker compose -f compose.test.yaml up -d",
-    "db:test:down": "docker compose -f compose.test.yaml down",
+    "db:test:down": "docker compose -f compose.test.yaml stop",
     "seed": "tsx prisma/seed/seed.ts"
   },
   "keywords": [],

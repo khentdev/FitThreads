@@ -2,6 +2,7 @@ import { Context } from "hono";
 import { CreatePostParamsVariables } from "./types.js";
 import { createPostService, getFeedService, getFavoritedPostsService } from "./service.js";
 import { getSanitizedFeedQuery } from "./utils/getSanitizedFeedQuery.js";
+import { OptionalVerifyTokenVariables } from "../../middleware/validateOptionalAccessToken.js";
 
 export const createPostController = async (c: Context<{ Variables: CreatePostParamsVariables }>) => {
     const { authorId, title, content, postTags } = c.get("createPostParams")
@@ -9,9 +10,11 @@ export const createPostController = async (c: Context<{ Variables: CreatePostPar
     return c.json({ message: "Your fitness thought is now live!" }, 201)
 }
 
-export const getFeedController = async (c: Context) => {
+export const getFeedController = async (c: Context<{ Variables: OptionalVerifyTokenVariables }>) => {
     const { cursor, limit, sortBy, search, username } = getSanitizedFeedQuery(c)
-    const result = await getFeedService({ cursor, limit, sortBy, search, username })
+    const optionalAuth = c.get("optionalVerifyTokenVariables")
+    const excludeUserId = optionalAuth?.userId
+    const result = await getFeedService({ cursor, limit, sortBy, search, username, excludeUserId })
     return c.json(result, 200)
 }
 

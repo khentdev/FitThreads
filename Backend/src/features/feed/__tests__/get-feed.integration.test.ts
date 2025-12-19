@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "../../../createApp.js";
 import { prisma } from "../../../../prisma/prismaConfig.js";
+import { generateTokens } from "../../session/tokens.js";
 
 type PostSeed = {
     title: string;
@@ -167,4 +168,137 @@ describe("GET /feed - Public Feed with Cursor Pagination", () => {
         const json = await res.json() as any
         expect(json.data).toHaveLength(20);
     });
+
+
+    describe("Fetch Public Feed Excluding User's Own Posts", () => {
+
+        it("should exclude authenticated user's own posts from public feed", async () => {
+            const user = await prisma.user.findUnique({
+                where: { username: SEED_USER.username }
+            });
+            expect(user).toBeDefined();
+
+            const { accessToken } = await generateTokens({
+                userId: user!.id,
+                deviceId: "test-device-123"
+            });
+
+            const res = await app.request("/feed", {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            });
+            expect(res.status).toBe(200);
+
+            const json = await res.json() as any;
+
+            expect(json.data).toHaveLength(0);
+            expect(json.hasMore).toBe(false);
+            expect(json.nextCursor).toBeNull();
+
+            const userPosts = json.data.filter((post: any) => post.author.id === user!.id);
+            expect(userPosts).toHaveLength(0);
+        });
+
+        it("should show ALL posts (including user's own) when unauthenticated", async () => {
+            const user = await prisma.user.findUnique({
+                where: { username: SEED_USER.username }
+            });
+            expect(user).toBeDefined();
+
+            const res = await app.request("/feed");
+            expect(res.status).toBe(200);
+
+            const json = await res.json() as any;
+
+            expect(json.data).toHaveLength(20);
+            expect(json.hasMore).toBe(true);
+
+            const allPostsCount = await prisma.post.count({ where: { authorId: user!.id } });
+            expect(allPostsCount).toBe(35); 
+        });
+
+        it("should show user's own posts on their profile view even when authenticated", async () => {
+            const user = await prisma.user.findUnique({
+                where: { username: SEED_USER.username }
+            });
+            expect(user).toBeDefined();
+
+            const { accessToken } = await generateTokens({
+                userId: user!.id,
+                deviceId: "test-device-456"
+            });
+
+           
+            const res = await app.request(`/feed?username=${SEED_USER.username}`, {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            });
+            expect(res.status).toBe(200);
+
+            const json = await res.json() as any;
+
+            expect(json.data).toHaveLength(20);
+            expect(json.hasMore).toBe(true);
+
+            const userPosts = json.data.filter((post: any) => post.author.username === SEED_USER.username);
+            expect(userPosts).toHaveLength(20);
+        });
+
+        it("should correctly paginate when excludeUserId filters out some posts", async () => {
+            const secondUser = await prisma.user.create({
+                data: {
+                    username: "second_test_user",
+                    email: "second@fitthreads.dev",
+                    hashedPassword: "dummy_hash_2",
+                    bio: "Second test user",
+                }
+            });
+
+            for (let i = 0; i < 10; i++) {
+                await prisma.post.create({
+                    data: {
+                        title: `Second user post ${i + 1}`,
+                        content: "Content from second user",
+                        authorId: secondUser.id,
+                        createdAt: new Date(Date.now() - i * 5000),
+                    }
+                });
+            }
+
+            const firstUser = await prisma.user.findUnique({
+                where: { username: SEED_USER.username }
+            });
+
+            const totalPosts = await prisma.post.count();
+            expect(totalPosts).toBe(45);
+
+            const { accessToken } = await generateTokens({
+                userId: firstUser!.id,
+                deviceId: "test-device-789"
+            });
+
+            const res = await app.request("/feed?limit=15", {
+                headers: {
+                    "Authorization": `Bearer ${accessToken}`
+                }
+            });
+            expect(res.status).toBe(200);
+
+            const json = await res.json() as any;
+
+            expect(json.data).toHaveLength(10);
+            expect(json.hasMore).toBe(false);
+
+            const excludedUserPosts = json.data.filter((post: any) => post.author.id === firstUser!.id);
+            expect(excludedUserPosts).toHaveLength(0);
+
+            const secondUserPosts = json.data.filter((post: any) => post.author.id === secondUser.id);
+            expect(secondUserPosts).toHaveLength(json.data.length);
+        });
+    })
 });
+
+
+
