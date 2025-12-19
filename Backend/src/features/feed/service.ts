@@ -2,7 +2,6 @@ import { AppError } from "../../errors/customError.js";
 import logger from "../../lib/logger.js";
 import { createPost, getFeed, getUserFavorites } from "./data.js";
 import type { CreatePostParams, GetFavoritedPostsParams, GetFeedParams, GetFeedResponseDTO } from "./types.js";
-import { prisma } from "../../../prisma/prismaConfig.js";
 import { decodeCursor as decodeFeedCursor } from "./utils/cursor.js";
 import { getUserProfile } from "../profile/data.js";
 
@@ -15,9 +14,9 @@ export const createPostService = async ({ authorId, title, content, postTags }: 
     }
 }
 
-export const getFeedService = async ({ cursor, limit, username, search, sortBy }: GetFeedParams): Promise<GetFeedResponseDTO> => {
+export const getFeedService = async ({ cursor, limit, username, search, sortBy, excludeUserId }: GetFeedParams): Promise<GetFeedResponseDTO> => {
     try {
-        const posts = await getFeed({ cursor, limit, username, search, sortBy })
+        const posts = await getFeed({ cursor, limit, username, search, sortBy, excludeUserId })
         return posts
     } catch (err) {
         logger.error({ error: err }, "Failed to get feed.")

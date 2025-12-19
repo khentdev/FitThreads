@@ -30,12 +30,12 @@ export const createPost = async ({
 }
 
 
-export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, username }: GetFeedParams) => {
+export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, username, excludeUserId }: GetFeedParams) => {
     const prismaCursor = cursor ? { id: cursor.id } : undefined;
 
     const prismaWhereClause: Prisma.PostWhereInput = search ? {
         author: {
-            isAdmin: false
+            isAdmin: false,
         },
         deletedAt: null,
         OR: [
@@ -48,7 +48,13 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
         // username is used only for getting posts from a specific user, 
         // if username exists -> getting posts from a specific user
         // else -> getting posts from all users
-        ...(username ? { author: { username, isAdmin: false } } : { author: { isAdmin: false } }),
+        ...(username ? { author: { username, isAdmin: false } } : {
+            author: {
+                isAdmin: false,
+                // Exclude authenticated user's posts from public feed (but not from profile view)
+                ...(excludeUserId ? { id: { not: excludeUserId } } : {})
+            }
+        }),
         deletedAt: null,
     }
 
