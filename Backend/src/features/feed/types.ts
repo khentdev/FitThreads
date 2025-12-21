@@ -64,7 +64,7 @@ export type GetFavoritedPostsParams = {
 }
 export type GetUserFavoritesParams = {
     username: string,
-    decodedCursor?: FeedCursor,
+    cursor?: { id: string },
     limit?: number
 }
 export type getUserFavoritesResponseDTO = {

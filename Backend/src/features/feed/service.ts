@@ -25,13 +25,9 @@ export const getFeedService = async ({ cursor, limit, username, search, sortBy, 
 }
 
 export const getFavoritedPostsService = async ({ username, cursor, limit }: GetFavoritedPostsParams) => {
-    const user = await getUserProfile(username);
-    if (!user)
-        throw new AppError("USER_NOT_FOUND", { field: "username" });
-
     const decodedCursor = decodeFeedCursor(cursor);
     try {
-        const posts = await getUserFavorites({ username, decodedCursor, limit })
+        const posts = await getUserFavorites({ username, cursor:decodedCursor, limit })
         return posts
     } catch (err) {
         logger.error({ error: err }, "Failed to get favorited posts.")
