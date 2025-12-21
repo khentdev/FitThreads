@@ -1,5 +1,5 @@
 import { axiosInstance } from "../../core/api/axiosConfig";
-import type { CreatePostParams, CreatePostResponse, GetFeedWithCursorQuery, GetFeedWithCursorResponse } from "./types";
+import type { CreatePostParams, CreatePostResponse, GetFeedWithCursorQuery, GetFeedWithCursorResponse, GetFavoritePostsQuery, GetFavoritePostsResponse } from "./types";
 import { getTypedResponse } from "../../shared/types/types";
 export const feedService = {
     createPost: async ({ title, content, postTags }: CreatePostParams) => {
@@ -9,5 +9,9 @@ export const feedService = {
     getFeedWithCursor: async ({ cursor, limit, username, search, sortBy }: GetFeedWithCursorQuery) => {
         const res = await axiosInstance.get("/feed", { params: { cursor, limit, username, search, sortBy } })
         return getTypedResponse<GetFeedWithCursorResponse>(res)
+    },
+    getFavoritePosts: async ({ username, cursor, limit }: GetFavoritePostsQuery) => {
+        const res = await axiosInstance.get("/feed/favorites", { params: { username, cursor, limit } })
+        return getTypedResponse<GetFavoritePostsResponse>(res)
     }
 }

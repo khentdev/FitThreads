@@ -24,11 +24,11 @@
                     </button>
                 </div>
 
-                <div class="mt-4 flex flex-col" v-if="(activeFilter === 'top' || activeFilter === 'recent')">
+                <div class="flex flex-col mt-4" v-if="(activeFilter === 'top' || activeFilter === 'recent')">
                     <PostSkeleton v-if="searchFeed.isLoading.value" />
                     <ErrorRetry v-else-if="searchFeed.isError.value"
                         message="Something went wrong. Please check your connection and try again."
-                        :is-retrying="searchFeed.isRefetching.value" :retryFn="handleTryAgain" />
+                        :is-retrying="searchFeed.isRefetching.value" :retryFn="handleTryAgainFeed" />
                     <EmptyState v-else-if="feedResults.length === 0" title="No posts found"
                         message="Try searching for something else." />
                     <div v-else v-for="post in feedResults" :key="post.id"
@@ -74,71 +74,68 @@
                         title="You're all caught up!"
                         message="That's all the posts for now. Check back later for more fitness thoughts."
                         :show-icon="false" />
-                    <button v-if="searchFeed.hasNextPage.value" @click="handleLoadMore"
+                    <button v-if="searchFeed.hasNextPage.value" @click="handleLoadMoreFeed"
                         :disabled="!searchFeed.hasNextPage.value || searchFeed.isFetchingNextPage.value"
                         class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
                         {{ searchFeed.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
                     </button>
                 </div>
 
-                <!-- <div class="mt-4" v-if="activeFilter === 'profile'">
-                    <div v-if="searchProfiles.isLoading.value" class="flex flex-col">
-                        <PostSkeleton />
-                    </div>
+                <div class="flex flex-col mt-4" v-if="activeFilter === 'profile'">
+                    <ProfileSearchSkeleton v-if="searchProfiles.isLoading.value" />
+                    <ErrorRetry v-else-if="searchProfiles.isError.value"
+                        message="Something went wrong. Please check your connection and try again."
+                        :is-retrying="searchProfiles.isRefetching.value" :retryFn="handleTryAgainProfile" />
                     <EmptyState v-else-if="profileResults.length === 0" title="No profiles found"
                         message="Try searching for a different username." />
-                    <div v-else class="flex flex-col px-0">
+                    <div v-else class="flex flex-col">
                         <div v-for="profile in profileResults" :key="profile.username"
                             @click="() => router.push({ name: 'profile', params: { username: profile.username } })"
-                            class="p-5 rounded-xl rounded-b-none border-b border-border-muted bg-surface-app cursor-pointer transition-colors hover:bg-surface-elevated">
-                            <div class="flex justify-between items-start">
-                                <div class="flex flex-col gap-1">
-                                    <span class="font-bold text-[15px] text-text-default">
-                                        @{{ profile.username }}
-                                    </span>
-                                    <p v-if="profile.bio" class="text-sm text-text-muted line-clamp-2 leading-relaxed">
-                                        {{ profile.bio }}
-                                    </p>
-                                    <p v-else class="text-sm text-text-muted italic">
-                                        No bio available
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex gap-4 mt-4 pt-4 border-t border-border-muted/50">
-                                <div class="flex gap-2 items-center text-text-muted">
-                                    <Flame class="w-4 h-4 fill-orange-500/10 text-orange-500" />
-                                    <span class="text-xs font-medium">{{ profile.totalLikes }} likes</span>
-                                </div>
-                                <div class="flex gap-2 items-center text-text-muted">
-                                    <span class="text-xs">Joined {{ formatDate(profile.joinedAt) }}</span>
-                                </div>
+                            class="flex flex-col justify-center px-5 py-4 border-b transition-colors cursor-pointer min-h-[72px] border-border-muted">
+                            <div class="flex flex-col gap-1">
+                                <span
+                                    class="font-bold text-[15px] w-fit text-text-default hover:underline hover:underline-offset-1 cursor-pointer active:text-text-muted transition-colors">@{{
+                                        profile.username
+                                    }}</span>
+                                <p v-if="profile.bio" class="text-[15px] text-text-muted line-clamp-1">
+                                    {{ profile.bio }}
+                                </p>
                             </div>
                         </div>
                     </div>
-                </div> -->
+                    <EmptyState v-if="!searchProfiles.hasNextPage.value && profileResults.length > 0"
+                        title="You're all caught up!"
+                        message="That's all the profiles for now. Check back later for more profiles."
+                        :show-icon="false" />
+                    <button v-if="searchProfiles.hasNextPage.value" @click="handleLoadMoreProfile"
+                        :disabled="!searchProfiles.hasNextPage.value || searchProfiles.isFetchingNextPage.value"
+                        class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
+                        {{ searchProfiles.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
+                    </button>
+                </div>
             </template>
         </div>
     </FeedViewLayout>
 </template>
 <script setup lang="ts">
-    import { Search, Flame, Bookmark } from "lucide-vue-next"
-    import PostSkeleton from "../../../shared/components/skeleton/PostSkeleton.vue";
-    import FeedViewLayout from '../components/FeedViewLayout.vue';
-    import ErrorRetry from "../../../shared/components/error/ErrorRetry.vue";
-    import { useSearchFeed, useSearchState } from "../composables";
+    import { Bookmark, Flame, Search } from "lucide-vue-next";
     import { computed } from 'vue';
-    import type { GetFeedWithCursorResponse } from "../types";
-    import EmptyState from "../../../shared/components/empty/EmptyState.vue";
-    import { useSearchProfiles } from "../../profile/composables";
     import { useRouter } from "vue-router";
+    import EmptyState from "../../../shared/components/empty/EmptyState.vue";
+    import ErrorRetry from "../../../shared/components/error/ErrorRetry.vue";
+    import PostSkeleton from "../../../shared/components/skeleton/PostSkeleton.vue";
+    import ProfileSearchSkeleton from "../../../shared/components/skeleton/ProfileSearchSkeleton.vue";
+    import FeedViewLayout from '../components/FeedViewLayout.vue';
+    import { useSearchFeed, useSearchState } from "../composables";
+    import type { GetFeedWithCursorResponse } from "../types";
+    import { useSearchProfiles } from "../../profile/composables";
 
     const router = useRouter()
 
     const tabs = [
         { id: 'top', label: 'Top' },
         { id: 'recent', label: 'Recent' },
-        { id: 'profile', label: 'Profile' }
+        { id: 'profile', label: 'Profiles' }
     ] as const
 
     const {
@@ -159,12 +156,12 @@
         return searchFeed.data.value.pages.flatMap((page: GetFeedWithCursorResponse) => page.data)
     })
 
-    // const profileFilter = computed(() => activeFilter.value === 'profile' ? 'profile' : 'top')
-    // const searchProfiles = useSearchProfiles(searchQuery, profileFilter)
-    // const profileResults = computed(() => {
-    //     if (!searchProfiles.data.value) return []
-    //     return searchProfiles.data.value
-    // })
+    const searchProfiles = useSearchProfiles(searchQuery, activeFilter)
+    const profileResults = computed(() => {
+        if (!searchProfiles.data.value) return []
+        return searchProfiles.data.value.pages.flatMap(page => page.users)
+    })
+
 
     const handleTabClick = (tab: typeof tabs[number]) => {
         setFilter(tab.id)
@@ -174,14 +171,26 @@
         setSearch(searchInput.value)
     }
 
-    const handleLoadMore = () => {
+
+    const handleLoadMoreFeed = () => {
         if (searchFeed.isFetchingNextPage.value || !searchFeed.hasNextPage.value) return;
         searchFeed.fetchNextPage()
     }
-    const handleTryAgain = () => {
+
+    const handleTryAgainFeed = () => {
         if (searchFeed.isRefetching.value) return;
         searchFeed.refetch();
     }
+
+    const handleLoadMoreProfile = () => {
+        if (searchProfiles.isFetchingNextPage.value || !searchProfiles.hasNextPage.value) return;
+        searchProfiles.fetchNextPage()
+    }
+    const handleTryAgainProfile = () => {
+        if (searchProfiles.isRefetching.value) return;
+        searchProfiles.refetch();
+    }
+
 
     const formatDate = (date: Date | string): string => {
         const now = new Date();

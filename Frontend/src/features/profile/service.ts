@@ -1,6 +1,6 @@
 import { axiosInstance } from "../../core/api/axiosConfig";
 import { getTypedResponse } from "../../shared/types/types";
-import type { UserProfile } from "./types";
+import type { ProfileSearchQueryParams, ProfileSearchResponse, UserProfile } from "./types";
 
 
 export const profileService = {
@@ -8,4 +8,16 @@ export const profileService = {
         const res = await axiosInstance.get(`/profile/${username}`);
         return getTypedResponse<UserProfile>(res)
     },
+    searchProfiles: async ({ limit, cursor, searchQuery }: ProfileSearchQueryParams) => {
+        const res = await axiosInstance.get("/profile/search", {
+            params: {
+                limit,
+                cursor,
+                searchQuery
+            }
+        });
+        return getTypedResponse<ProfileSearchResponse>(res)
+    },
+    
+
 }
