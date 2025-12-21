@@ -99,7 +99,7 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
 
 
 
-export const getUserFavorites = async ({ username, decodedCursor, limit = 20 }: GetUserFavoritesParams): Promise<getUserFavoritesResponseDTO> => {
+export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUserFavoritesParams): Promise<getUserFavoritesResponseDTO> => {
     const user = await prisma.user.findUnique({
         where: { username },
         select: { id: true }
@@ -107,10 +107,10 @@ export const getUserFavorites = async ({ username, decodedCursor, limit = 20 }: 
 
     if (!user) return null
 
-    const prismaCursor = decodedCursor ? {
+    const prismaCursor = cursor ? {
         userId_postId: {
             userId: user.id,
-            postId: decodedCursor.id
+            postId: cursor.id
         }
     } : undefined;
 
