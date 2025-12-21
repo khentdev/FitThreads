@@ -14,10 +14,10 @@ export type FeedFilters = {
 }
 export type GetFeedWithCursorQuery = {
     cursor?: string
-    limit?:number
+    limit?: number
     username?: string
     search?: string
-    sortBy?: "recent" | "top" 
+    sortBy?: "recent" | "top"
 }
 export type GetFeedWithCursorResponse = {
     data: {
@@ -43,3 +43,36 @@ export type GetFeedWithCursorResponse = {
     nextCursor: string | null;
     hasMore: boolean;
 }
+
+export type GetFavoritePostsQuery = {
+    username: string
+    cursor?: string
+    limit?: number
+}
+export type GetFavoritePostsResponse = {
+    data: {
+        post: {
+            id: string;
+            title: string;
+            content: string;
+            createdAt: Date;
+            author: {
+                id: string;
+                username: string;
+                bio: string | null;
+            };
+            postTags: {
+                tag: {
+                    name: string;
+                };
+            }[];
+            _count: {
+                favorites: number;
+                likes: number;
+            };
+        };
+        createdAt: Date;
+    }[];
+    nextCursor: string | null;
+    hasMore: boolean;
+} | null;

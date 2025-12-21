@@ -1,21 +1,20 @@
 import { useInfiniteQuery } from "@tanstack/vue-query"
-import { feedService } from "../service"
 import type { MaybeRefOrGetter } from "vue"
 import { toValue } from "vue"
-
+import { feedService } from "../service"
 
 export const useUserFavorites = (username: MaybeRefOrGetter<string>) => {
     return useInfiniteQuery({
-        queryKey: ['profile-favorites', { username: toValue(username), favorite: true }],
-        queryFn: ({ pageParam }) => feedService.getFeedWithCursor({
+        queryKey: ['profile-favorites', { username }],
+        queryFn: ({ pageParam }) => feedService.getFavoritePosts({
             cursor: pageParam,
             limit: 5,
             username: toValue(username),
-            // TODO: Add favorite: true when backend supports it
         }),
+        staleTime: 60 * 1000,
         initialPageParam: "",
-        getNextPageParam: (lastPage) => lastPage.nextCursor,
+        getNextPageParam: (lastPage) => lastPage && lastPage.nextCursor,
         refetchOnWindowFocus: false,
-        enabled: !!toValue(username), // Only run if username is provided
+        enabled: !!toValue(username),
     })
 }
