@@ -94,3 +94,8 @@ export type getUserFavoritesResponseDTO = {
     nextCursor: string | null;
     hasMore: boolean;
 } | null
+
+export type ToggleLikeParams = {
+    postId: string,
+    userId: string
+}

@@ -1,5 +1,5 @@
 import { Prisma, prisma } from "../../../prisma/prismaConfig.js"
-import { CreatePostParams, GetFeedParams, GetUserFavoritesParams, getUserFavoritesResponseDTO } from "./types.js"
+import { CreatePostParams, GetFeedParams, GetUserFavoritesParams, getUserFavoritesResponseDTO, ToggleLikeParams } from "./types.js"
 import { encodeCursor } from "../../lib/cursor.js";
 import { encodeCursor as encodeFeedCursor, FeedCursor } from "./utils/cursor.js";
 
@@ -156,4 +156,39 @@ export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUser
         nextCursor,
         hasMore
     };
+}
+
+
+/**
+ * req 1: Delete like 
+ * if no delete count -> deleted.count = 0
+ * wasAlreadyLiked =  deleted.count > 0 (false)
+ * Condition: If no delete count -> create like
+ * Like exist now in db
+ * hasLiked = !wasAlreadyLiked (true)
+ * 
+ * req 2: Delete Like
+ * if delete count -> deleted.count = 1
+ * wasAlreadyLiked =  deleted.count > 0 (true)
+ * Condition: If delete count -> delete like
+ * Like does not exist in db
+ * hasLiked = !wasAlreadyLiked (false)
+ */
+export const toggleLike = async ({ postId, userId }: ToggleLikeParams) => {
+    const deleted = await prisma.like.deleteMany({ where: { userId, postId } })
+    const wasAlreadyLiked = deleted.count > 0
+    if (!wasAlreadyLiked) {
+        await prisma.like.create({ data: { postId, userId } })
+    }
+    const likeCount = await prisma.like.count({ where: { postId } })
+    const hasLiked = !wasAlreadyLiked
+    return { hasLiked, likeCount }
+}
+
+export const checkPostExists = async (postId: string) => {
+    const post = await prisma.post.findUnique({
+        where: { id: postId },
+        select: { id: true }
+    })
+    return !!post
 }

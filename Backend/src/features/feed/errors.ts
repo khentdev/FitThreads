@@ -19,7 +19,9 @@ export const FEED_ERROR_CODES = {
 
     FEED_RETRIEVAL_FAILED: "FEED_RETRIEVAL_FAILED",
     USER_NOT_FOUND: "USER_NOT_FOUND",
-    FAVORITED_POSTS_RETRIEVAL_FAILED: "FAVORITED_POSTS_RETRIEVAL_FAILED"
+    FAVORITED_POSTS_RETRIEVAL_FAILED: "FAVORITED_POSTS_RETRIEVAL_FAILED",
+    POST_NOT_FOUND: "POST_NOT_FOUND",
+    TOGGLE_LIKE_FAILED: "TOGGLE_LIKE_FAILED"
 } as const
 
 export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
@@ -92,6 +94,16 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "FAVORITED_POSTS_RETRIEVAL_FAILED",
         status: 500,
         message: "Failed to retrieve favorited posts. Please try again."
+    },
+    POST_NOT_FOUND: {
+        code: "POST_NOT_FOUND",
+        status: 404,
+        message: "Post not found."
+    },
+    TOGGLE_LIKE_FAILED: {
+        code: "TOGGLE_LIKE_FAILED",
+        status: 500,
+        message: "Failed to toggle like. Please try again."
     }
 }
 export type FeedErrorCode = keyof typeof FEED_ERROR_CODES
