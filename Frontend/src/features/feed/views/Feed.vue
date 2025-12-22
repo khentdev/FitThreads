@@ -73,7 +73,7 @@
     import EmptyState from '../../../shared/components/empty/EmptyState.vue';
     import ErrorRetry from '../../../shared/components/error/ErrorRetry.vue';
     import PostSkeleton from '../../../shared/components/skeleton/PostSkeleton.vue';
-    import { useGlobalLoadingState } from '../../../shared/store/useGlobalStates';
+
     import FeedViewLayout from '../components/FeedViewLayout.vue';
     import { useMainFeed } from '../composables';
     import { useFeedStore } from '../store/feedStore';
@@ -86,7 +86,7 @@
     const feedStore = useFeedStore()
     const authStore = useAuthStore()
     const { openModal } = useLoginModal()
-    const { isLoading } = useGlobalLoadingState()
+
 
     const allPosts = computed(() => {
         if (!query.data.value?.pages) return [];
@@ -130,7 +130,7 @@
             openModal('like');
             return;
         }
-        if (isLoading["feed-toggleLikeMutation"]) return;
+
         feedStore.toggleLike({ postId })
     }
 
