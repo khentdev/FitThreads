@@ -1,7 +1,7 @@
-import { Prisma, prisma } from "../../../prisma/prismaConfig.js"
-import { CreatePostParams, GetFeedParams, GetUserFavoritesParams, getUserFavoritesResponseDTO } from "./types.js"
+import { Prisma, prisma } from "../../../prisma/prismaConfig.js";
 import { encodeCursor } from "../../lib/cursor.js";
-import { encodeCursor as encodeFeedCursor, FeedCursor } from "./utils/cursor.js";
+import { CreatePostParams, GetFeedParams, GetFeedResponseDTO, GetUserFavoritesParams, getUserFavoritesResponseDTO, ToggleLikeParams } from "./types.js";
+import { encodeCursor as encodeFeedCursor } from "./utils/cursor.js";
 
 export const createPost = async ({
     authorId,
@@ -30,7 +30,7 @@ export const createPost = async ({
 }
 
 
-export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, username, excludeUserId }: GetFeedParams) => {
+export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, username, excludeUserId }: GetFeedParams): Promise<GetFeedResponseDTO> => {
     const prismaCursor = cursor ? { id: cursor.id } : undefined;
 
     const prismaWhereClause: Prisma.PostWhereInput = search ? {
@@ -81,6 +81,8 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
             title: true,
             content: true,
             createdAt: true,
+            likes: true,
+            favorites: true,
             author: { select: { id: true, username: true, bio: true } },
             postTags: { select: { tag: { select: { name: true } } } },
             _count: { select: { likes: true, favorites: true } },
@@ -94,11 +96,23 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
             id: data[data.length - 1].id,
         })
         : null;
-    return { data, nextCursor, hasMore };
+
+    const transformedData = data.map(post => ({
+        ...post,
+        hasLikedByUser: post.likes.some(p => p.userId === excludeUserId),
+        hasFavoritedByUser: post.favorites.some(p => p.userId === excludeUserId),
+        likes: undefined,
+        favorites: undefined
+    }))
+    return { data: transformedData, nextCursor, hasMore };
 };
 
 
-
+/**
+ * I will update this later 
+ * Include likes, favorites on prisma query
+ * make hasLike and hasFavorited flags on DTO
+ */
 export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUserFavoritesParams): Promise<getUserFavoritesResponseDTO> => {
     const user = await prisma.user.findUnique({
         where: { username },
@@ -156,4 +170,39 @@ export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUser
         nextCursor,
         hasMore
     };
+}
+
+
+/**
+ * req 1: Delete like 
+ * if no delete count -> deleted.count = 0
+ * wasAlreadyLiked =  deleted.count > 0 (false)
+ * Condition: If no delete count -> create like
+ * Like exist now in db
+ * hasLiked = !wasAlreadyLiked (true)
+ * 
+ * req 2: Delete Like
+ * if delete count -> deleted.count = 1
+ * wasAlreadyLiked =  deleted.count > 0 (true)
+ * Condition: If delete count -> delete like
+ * Like does not exist in db
+ * hasLiked = !wasAlreadyLiked (false)
+ */
+export const toggleLike = async ({ postId, userId }: ToggleLikeParams) => {
+    const deleted = await prisma.like.deleteMany({ where: { userId, postId } })
+    const wasAlreadyLiked = deleted.count > 0
+    if (!wasAlreadyLiked) {
+        await prisma.like.create({ data: { postId, userId } })
+    }
+    const likeCount = await prisma.like.count({ where: { postId } })
+    const hasLiked = !wasAlreadyLiked
+    return { hasLiked, likeCount }
+}
+
+export const checkPostExists = async (postId: string) => {
+    const post = await prisma.post.findUnique({
+        where: { id: postId },
+        select: { id: true }
+    })
+    return !!post
 }

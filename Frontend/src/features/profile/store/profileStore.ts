@@ -37,7 +37,7 @@ export const useProfileStore = defineStore('profile', () => {
     }
 
     watchEffect(() => {
-        if (profileQuery.data.value) {
+        if (profileQuery.data) {
             errors.profileFetchFailed = false;
             errors.profileNotFound = false;
             errors.serverError = false;

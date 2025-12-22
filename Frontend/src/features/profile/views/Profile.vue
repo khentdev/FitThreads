@@ -1,7 +1,10 @@
 <template>
     <ProfileViewLayout title="Profile">
         <ErrorRetry :retry-fn="profileStore.retryFetchProfile" v-if="errors.serverError || errors.profileFetchFailed" />
-        <Loader2 class="animate-spin size-5 stroke-border-strong" v-else-if="profileStore.profileQuery.isPending" />
+        <div v-else-if="profileStore.profileQuery.isPending"
+            class="flex justify-center items-center absolute inset-0">
+            <Loader2 class="animate-spin size-5 stroke-border-strong" />
+        </div>
         <template v-else>
             <ProfileHeaderOwn v-if="isOwnProfile" :profile="profileStore.profileQuery.data" />
             <ProfileHeaderOther v-else :profile="profileStore.profileQuery.data" />

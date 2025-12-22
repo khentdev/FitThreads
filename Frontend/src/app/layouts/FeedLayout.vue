@@ -7,16 +7,20 @@
                 <component :is="Component" :key="route.name"></component>
             </RouterView>
         </main>
+        <LoginModalPopup :is-open="isModalOpen()" :context="modalContext()" @close="closeModal" />
     </div>
 </template>
 
 <script setup lang="ts">
     import { RouterView, useRoute } from 'vue-router'
     import Header from '../../features/feed/components/Header.vue';
+    import LoginModalPopup from '../../shared/components/LoginModalPopup.vue';
+    import { useLoginModal } from '../../shared/composables/useLoginModal';
     import { onMounted, ref, watch, nextTick, type Ref, onBeforeUnmount } from 'vue';
 
     const route = useRoute()
     const scrollContainer: Ref<HTMLDivElement | null> = ref(null)
+    const { isOpen: isModalOpen, context: modalContext, closeModal } = useLoginModal()
 
     const handleScroll = (e: Event) => {
         if (route.name !== 'feed') return;

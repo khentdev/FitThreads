@@ -39,6 +39,8 @@ export type GetFeedWithCursorResponse = {
             favorites: number;
             likes: number;
         };
+        hasLikedByUser: boolean,
+        hasFavoritedByUser: boolean
     }[];
     nextCursor: string | null;
     hasMore: boolean;
@@ -76,3 +78,11 @@ export type GetFavoritePostsResponse = {
     nextCursor: string | null;
     hasMore: boolean;
 } | null;
+
+export type ToggleLikeParams = {
+    postId: string
+}
+export type ToggleLikeResponse = {
+    hasLiked: boolean
+    likeCount: number
+}

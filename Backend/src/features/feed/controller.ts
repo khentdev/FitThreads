@@ -1,8 +1,9 @@
 import { Context } from "hono";
 import { CreatePostParamsVariables } from "./types.js";
-import { createPostService, getFeedService, getFavoritedPostsService } from "./service.js";
+import { createPostService, getFeedService, getFavoritedPostsService, toggleLikeService } from "./service.js";
 import { getSanitizedFeedQuery } from "./utils/getSanitizedFeedQuery.js";
 import { OptionalVerifyTokenVariables } from "../../middleware/validateOptionalAccessToken.js";
+import { VerifyTokenVariables } from "../../middleware/validateAccessToken.js";
 
 export const createPostController = async (c: Context<{ Variables: CreatePostParamsVariables }>) => {
     const { authorId, title, content, postTags } = c.get("createPostParams")
@@ -25,5 +26,12 @@ export const getFavoritedPostsController = async (c: Context) => {
     const limit = Math.min(Math.max(Number(rawLimit) || 20, 1), 20);
 
     const result = await getFavoritedPostsService({ username, cursor, limit })
+    return c.json(result, 200)
+}
+
+export const toggleLikeController = async (c: Context<{ Variables: VerifyTokenVariables }>) => {
+    const postId = c.req.param("postId")
+    const { user } = c.get("verifyTokenVariables")
+    const result = await toggleLikeService({ postId, userId: user.id })
     return c.json(result, 200)
 }

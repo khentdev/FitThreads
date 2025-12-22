@@ -18,6 +18,10 @@ export const POST_TAG_FORMAT_INVALID = "POST_TAG_FORMAT_INVALID"
 // Service Layer Error
 export const POST_CREATION_FAILED = "POST_CREATION_FAILED"
 
+// Like Error
+export const TOGGLE_LIKE_FAILED = "TOGGLE_LIKE_FAILED"
+export const POST_NOT_FOUND = "POST_NOT_FOUND"
+
 export type FeedErrorCode =
     | typeof TITLE_MIN_LENGTH
     | typeof TITLE_MAX_LENGTH
@@ -29,3 +33,6 @@ export type FeedErrorCode =
     | typeof POST_TAG_MAX_LENGTH
     | typeof POST_CREATION_FAILED
     | typeof POST_TAG_FORMAT_INVALID
+    | typeof TOGGLE_LIKE_FAILED
+    | typeof POST_NOT_FOUND
+

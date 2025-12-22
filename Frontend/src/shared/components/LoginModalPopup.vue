@@ -37,7 +37,7 @@
 
     export type LoginModalPopupProps = {
         isOpen: boolean;
-        context: 'create-post' | 'profile';
+        context: 'create-post' | 'profile' | 'like' | 'favorite';
     }
 
     export type LoginModalPopupEmits = {
@@ -53,15 +53,19 @@
 
     const title = computed((): string => {
         return {
-            'create-post': 'Share more with FitThreads',
-            'profile': 'Join the community'
+            'create-post': 'Share your fitness thoughts',
+            'profile': 'Join FitThreads',
+            'like': 'Like fitness thoughts',
+            'favorite': 'Save fitness thoughts'
         }[props.context];
     });
 
     const description = computed((): string => {
         return {
-            'create-post': 'Join FitThreads to share your fitness thoughts, read what others are thinking, and discover authentic ideas that cut through the noise.',
-            'profile': 'Join FitThreads to browse fitness thoughts from real people, share your own insights, and discover a community focused on substance over style.'
+            'create-post': 'Join to share your fitness ideas and read authentic thoughts from real people.',
+            'profile': 'Join to browse fitness thoughts, share your insights, and connect with substance over style.',
+            'like': 'Join to show appreciation for fitness thoughts that resonate with you.',
+            'favorite': 'Join to save the fitness thoughts you want to revisit later.'
         }[props.context];
     });
 
