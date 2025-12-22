@@ -53,6 +53,8 @@ export type GetFeedResponseDTO = {
             favorites: number;
             likes: number;
         };
+        hasLikedByUser: boolean,
+        hasFavoritedByUser: boolean
     }[];
     nextCursor: string | null;
     hasMore: boolean;
