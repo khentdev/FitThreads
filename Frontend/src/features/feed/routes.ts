@@ -1,4 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
+import { useLoginModal } from '../../shared/composables/useLoginModal'
+import { useAuthStore } from '../auth/store/authStore'
 
 export const feedRoutes: RouteRecordRaw[] = [
     {
@@ -20,6 +22,15 @@ export const feedRoutes: RouteRecordRaw[] = [
                 path: 'create-post',
                 name: 'create-post',
                 component: () => import("./views/CreatePost.vue"),
+                beforeEnter: (_, __, next) => {
+                    const { openModal } = useLoginModal()
+                    const authStore = useAuthStore()
+                    if (!authStore.hasAuthenticated) {
+                        openModal("create-post")
+                        return next({ name: "feed" })
+                    }
+                    next()
+                }
             },
             {
                 path: 'settings',

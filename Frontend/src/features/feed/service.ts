@@ -1,6 +1,6 @@
 import { axiosInstance } from "../../core/api/axiosConfig";
-import type { CreatePostParams, CreatePostResponse, GetFeedWithCursorQuery, GetFeedWithCursorResponse, GetFavoritePostsQuery, GetFavoritePostsResponse } from "./types";
 import { getTypedResponse } from "../../shared/types/types";
+import type { CreatePostParams, CreatePostResponse, GetFavoritePostsQuery, GetFavoritePostsResponse, GetFeedWithCursorQuery, GetFeedWithCursorResponse, ToggleLikeParams, ToggleLikeResponse } from "./types";
 export const feedService = {
     createPost: async ({ title, content, postTags }: CreatePostParams) => {
         const res = await axiosInstance.post("/feed/create-post", { title, content, postTags })
@@ -13,5 +13,9 @@ export const feedService = {
     getFavoritePosts: async ({ username, cursor, limit }: GetFavoritePostsQuery) => {
         const res = await axiosInstance.get("/feed/favorites", { params: { username, cursor, limit } })
         return getTypedResponse<GetFavoritePostsResponse>(res)
+    },
+    toggleLike: async ({ postId }: ToggleLikeParams) => {
+        const res = await axiosInstance.post(`/feed/${postId}/like`)
+        return getTypedResponse<ToggleLikeResponse>(res)
     }
 }

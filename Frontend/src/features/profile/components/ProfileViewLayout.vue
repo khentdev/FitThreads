@@ -2,7 +2,7 @@
     <div class="flex flex-col justify-center items-center w-full min-h-full">
         <PageHeader :title="title" />
         <div
-            class="w-full max-w-[640px] pb-8 md:px-0 flex-1 flex flex-col md:border rounded-xl rounded-b-none border-border-muted">
+            class="w-full max-w-[640px] pb-8 md:px-0 flex-1 relative flex flex-col md:border rounded-xl rounded-b-none border-border-muted">
             <slot />
         </div>
     </div>
