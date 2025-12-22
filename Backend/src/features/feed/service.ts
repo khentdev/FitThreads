@@ -1,9 +1,9 @@
 import { AppError } from "../../errors/customError.js";
 import logger from "../../lib/logger.js";
+import { isValidUUID } from "../../lib/validation.js";
 import { createPost, getFeed, getUserFavorites, toggleLike, checkPostExists } from "./data.js";
 import type { CreatePostParams, GetFavoritedPostsParams, GetFeedParams, GetFeedResponseDTO } from "./types.js";
 import { decodeCursor as decodeFeedCursor } from "./utils/cursor.js";
-import { getUserProfile } from "../profile/data.js";
 
 export const createPostService = async ({ authorId, title, content, postTags }: CreatePostParams) => {
     try {
@@ -36,6 +36,9 @@ export const getFavoritedPostsService = async ({ username, cursor, limit }: GetF
 }
 
 export const toggleLikeService = async ({ postId, userId }: { postId: string, userId: string }) => {
+    // This will never execute unless unknown attacker explicitly tries to inject invalid UUID
+    if (!isValidUUID(postId)) throw new Error("Invalid Post UUID")
+
     const postExists = await checkPostExists(postId)
     if (!postExists)
         throw new AppError("POST_NOT_FOUND", { field: "post" })

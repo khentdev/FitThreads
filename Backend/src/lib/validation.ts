@@ -41,3 +41,9 @@ export const isValidTagsArray = (value: unknown, minTags: number, maxTags: numbe
     if (!Array.isArray(value) || value.length < minTags || value.length > maxTags) return false;
     return value.every(tag => isWithinLengthRange(tag, minTagLength, maxTagLength));
 }
+
+export const isValidUUID = (value: unknown): boolean => {
+    if (typeof value !== "string" || !notEmpty(value)) return false;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(value.trim());
+}
