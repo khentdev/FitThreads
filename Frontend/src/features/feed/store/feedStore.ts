@@ -7,18 +7,28 @@ import { errorHandler, } from '../../../core/errors/errorHandler'
 import { useToast } from '../../../shared/composables/toast/useToast'
 import * as FEED_ERROR_CODES from '../errors/FeedErrorCodes'
 import { feedService } from '../service'
-import type { CreatePostParams, GetFeedWithCursorResponse, ToggleFavoriteParams, ToggleLikeParams } from '../types'
+import type { CreatePostParams, GetFavoritePostsResponse, GetFeedWithCursorResponse, ToggleFavoriteParams, ToggleLikeParams } from '../types'
+import { useAuthStore } from '../../auth/store/authStore'
 
 type ToggleLikeMutationContext = {
-    queryKey: unknown[],
-    previousData: InfiniteData<GetFeedWithCursorResponse> | undefined
+    feedCache: { queryKey: unknown[], previousData: InfiniteData<GetFeedWithCursorResponse> | undefined }[],
+    favoritesCache: { queryKey: unknown[], previousData: InfiniteData<GetFavoritePostsResponse> | undefined }[]
 }
 type ToggleFavoriteMutationContext = {
-    queryKey: unknown[],
-    previousData: InfiniteData<GetFeedWithCursorResponse> | undefined
+    feedCache: { queryKey: unknown[], previousData: InfiniteData<GetFeedWithCursorResponse> | undefined }[],
+    favoritesCache: { queryKey: unknown[], previousData: InfiniteData<GetFavoritePostsResponse> | undefined }[]
+}
+type ToggleLikeForFavoritesMutationContext = {
+    feedCache: { queryKey: unknown[], previousData: InfiniteData<GetFeedWithCursorResponse> | undefined }[],
+    favoritesCache: { queryKey: unknown[], previousData: InfiniteData<GetFavoritePostsResponse> | undefined }[]
+}
+type ToggleFavoriteForFavoritesMutationContext = {
+    feedCache: { queryKey: unknown[], previousData: InfiniteData<GetFeedWithCursorResponse> | undefined }[],
+    favoritesCache: { queryKey: unknown[], previousData: InfiniteData<GetFavoritePostsResponse> | undefined }[]
 }
 export const useFeedStore = defineStore('feed', () => {
     const { toast } = useToast()
+    const authStore = useAuthStore()
 
 
     const queryClient = useQueryClient()
@@ -34,7 +44,7 @@ export const useFeedStore = defineStore('feed', () => {
             const res = await feedService.createPost({ title, content, postTags })
             toast.success(res.message)
             await queryClient.invalidateQueries({ queryKey: ["feed"] })
-            
+
             return { success: true }
         } catch (err) {
             const error = err as AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>
@@ -55,15 +65,37 @@ export const useFeedStore = defineStore('feed', () => {
         }
     }
 
+
+    /** Optimistic Update for Like Logic I implemented
+     Initial server state: likeCount = 2
+     User A's timeline:
+     - Sees likeCount: 2
+     - Clicks like
+     - Optimistic update: 2 + 1 = 3 ✓
+     - Server processes: likeCount becomes 3
+     - onSuccess syncs: receives likeCount = 4 (User B also liked)
+     - Final UI: 4 ✓ (correct)
+     User B's timeline:
+     - Sees likeCount: 2
+     - Clicks like (at nearly same time)
+     - Optimistic update: 2 + 1 = 3 ✓
+     - Server processes: likeCount becomes 4 (User A already liked)
+     - onSuccess syncs: receives likeCount = 4
+     - Final UI: 4 ✓ (correct)
+      * 
+      */
+
+
     /**
      * Optimistic Update for Like
      * Update Like button to be active on like toggle while waiting for server response
      * onError: Revert Like button to be inactive -> use the last cached data
-     * onSuccess: Active button is active - sync to server response and invalidate cache from other queries that renders posts feed
+     * onSuccess: Active button is active - sync to server response
      * onMutate:
      * Cancel queries 
      * Get previous queries and store in array for rollback later
      * do optimistic update on UI
+     * This optimistically updates both Feed View and Profile Favorites View
      */
     const toggleLikeMutation = useMutation({
         mutationFn: ({ postId }: ToggleLikeParams) => feedService.toggleLike({ postId }),
@@ -74,21 +106,26 @@ export const useFeedStore = defineStore('feed', () => {
         },
         onMutate: async (variables) => {
             const { postId } = variables
-            await queryClient.cancelQueries({ queryKey: ["feed"] })
-            const previousCachedFeedPosts = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
 
-            let previousCachedFeedPostsData: ToggleLikeMutationContext[] = []
+            await queryClient.cancelQueries({ queryKey: ["feed"] })
+            await queryClient.cancelQueries({ queryKey: ["profile-favorites"] })
+
+            const previousCachedFeedPosts = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            let feedCache: ToggleLikeMutationContext['feedCache'] = []
+
             previousCachedFeedPosts.forEach(([queryKey, cachedData]) => {
                 if (!cachedData?.pages) return
                 const postExists = cachedData.pages.some(page => page.data.some(post => post.id === postId))
                 if (!postExists) return
-                previousCachedFeedPostsData.push({ queryKey: queryKey as unknown[], previousData: cachedData })
-                const updatedData: ToggleLikeMutationContext['previousData'] = {
+
+                feedCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
                     ...cachedData,
                     pages: cachedData.pages.map(page => ({
                         ...page,
                         data: page.data.map(post => {
-                            if (post.id !== postId) return post;
+                            if (post.id !== postId) return post
                             const delta = post.hasLikedByUser ? -1 : 1
                             return {
                                 ...post,
@@ -103,43 +140,118 @@ export const useFeedStore = defineStore('feed', () => {
                 }
                 queryClient.setQueryData(queryKey, updatedData)
             })
-            return { previousCachedFeedPostsData }
 
+            const previousCachedFavorites = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            let favoritesCache: ToggleLikeMutationContext['favoritesCache'] = []
+
+            previousCachedFavorites.forEach(([queryKey, cachedData]) => {
+                if (!cachedData?.pages) return
+                const postExists = cachedData.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (!postExists) return
+
+                favoritesCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
+                    ...cachedData,
+                    pages: cachedData.pages.map(page => {
+                        if (!page?.data) return page
+                        return {
+                            ...page,
+                            data: page.data.map(favorite => {
+                                if (favorite.post.id !== postId) return favorite
+                                const delta = favorite.post.hasLikedByUser ? -1 : 1
+                                return {
+                                    ...favorite,
+                                    post: {
+                                        ...favorite.post,
+                                        hasLikedByUser: !favorite.post.hasLikedByUser,
+                                        _count: {
+                                            ...favorite.post._count,
+                                            likes: favorite.post._count.likes + delta
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+                queryClient.setQueryData(queryKey, updatedData)
+            })
+
+            return { feedCache, favoritesCache }
         },
-        onSuccess: (data, variables) => {
+        onSuccess: async (data, variables) => {
             const { postId } = variables
             const { hasLiked, likeCount } = data
-            const cachedData = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
-            cachedData.forEach(([queryKey, cached]) => {
+
+            const cachedFeedData = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            cachedFeedData.forEach(([queryKey, cached]) => {
                 const isPostInCache = cached?.pages.some(page => page.data.some(post => post.id === postId))
                 if (cached && isPostInCache) {
-                    const updatedData: ToggleLikeMutationContext['previousData'] = {
+                    const updatedData = {
                         ...cached,
                         pages: cached.pages.map(page => ({
                             ...page,
-                            data: page.data.map(post => (
-                                post.id === postId ?
-                                    {
+                            data: page.data.map(post =>
+                                post.id === postId
+                                    ? {
                                         ...post,
                                         hasLikedByUser: hasLiked,
                                         _count: {
                                             ...post._count,
                                             likes: likeCount
                                         }
-
-                                    } : post
-                            ))
+                                    }
+                                    : post
+                            )
                         }))
+                    }
+                    queryClient.setQueryData(queryKey, updatedData)
+                }
+            })
+
+            const cachedFavoritesData = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            cachedFavoritesData.forEach(([queryKey, cached]) => {
+                const isPostInCache = cached?.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (cached && isPostInCache) {
+                    const updatedData = {
+                        ...cached,
+                        pages: cached.pages.map(page => {
+                            if (!page?.data) return page
+                            return {
+                                ...page,
+                                data: page.data.map(favorite =>
+                                    favorite.post.id === postId
+                                        ? {
+                                            ...favorite,
+                                            post: {
+                                                ...favorite.post,
+                                                hasLikedByUser: hasLiked,
+                                                _count: {
+                                                    ...favorite.post._count,
+                                                    likes: likeCount
+                                                }
+                                            }
+                                        }
+                                        : favorite
+                                )
+                            }
+                        })
                     }
                     queryClient.setQueryData(queryKey, updatedData)
                 }
             })
         },
         onError(error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>, _, context) {
-            const { type, message } = errorHandler(error);
-            context?.previousCachedFeedPostsData.forEach(({ queryKey, previousData }) => {
+            const { type, message } = errorHandler(error)
+
+            context?.feedCache.forEach(({ queryKey, previousData }) => {
                 queryClient.setQueryData(queryKey, previousData)
             })
+            context?.favoritesCache.forEach(({ queryKey, previousData }) => {
+                queryClient.setQueryData(queryKey, previousData)
+            })
+
             const types: typeof type[] = ["offline", "server_error", "timeout", "unreachable"]
             if (types.includes(type)) toast.error(message, { dedup: true })
         },
@@ -148,11 +260,12 @@ export const useFeedStore = defineStore('feed', () => {
     * Optimistic Update for Favorite
     * Update Favorite button to be active on Favorite toggle while waiting for server response
     * onError: Revert Favorite button to be inactive -> use the last cached data
-    * onSuccess: Active button is active - sync to server response and invalidate cache from other queries that renders posts feed
+    * onSuccess: Active button is active - sync to server response
     * onMutate:
     * Cancel queries 
     * Get previous queries and store in array for rollback later
-    * do optimistic update on UI
+    * do optimistic update on UI.
+     * This optimistically updates both Feed View and Profile Favorites View
     */
     const toggleFavoriteMutation = useMutation({
         mutationFn: ({ postId }: ToggleFavoriteParams) => feedService.toggleFavorite({ postId }),
@@ -163,21 +276,26 @@ export const useFeedStore = defineStore('feed', () => {
         },
         onMutate: async (variables) => {
             const { postId } = variables
-            await queryClient.cancelQueries({ queryKey: ["feed"] })
-            const previousCachedFeedPosts = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
 
-            let previousCachedFeedPostsData: ToggleFavoriteMutationContext[] = []
+            await queryClient.cancelQueries({ queryKey: ["feed"] })
+            await queryClient.cancelQueries({ queryKey: ["profile-favorites"] })
+
+            const previousCachedFeedPosts = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            let feedCache: ToggleFavoriteMutationContext['feedCache'] = []
+
             previousCachedFeedPosts.forEach(([queryKey, cachedData]) => {
                 if (!cachedData?.pages) return
                 const postExists = cachedData.pages.some(page => page.data.some(post => post.id === postId))
                 if (!postExists) return
-                previousCachedFeedPostsData.push({ queryKey: queryKey as unknown[], previousData: cachedData })
-                const updatedData: ToggleFavoriteMutationContext['previousData'] = {
+
+                feedCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
                     ...cachedData,
                     pages: cachedData.pages.map(page => ({
                         ...page,
                         data: page.data.map(post => {
-                            if (post.id !== postId) return post;
+                            if (post.id !== postId) return post
                             const delta = post.hasFavoritedByUser ? -1 : 1
                             return {
                                 ...post,
@@ -192,34 +310,273 @@ export const useFeedStore = defineStore('feed', () => {
                 }
                 queryClient.setQueryData(queryKey, updatedData)
             })
-            return { previousCachedFeedPostsData }
 
+            const previousCachedFavorites = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            let favoritesCache: ToggleFavoriteMutationContext['favoritesCache'] = []
+
+            previousCachedFavorites.forEach(([queryKey, cachedData]) => {
+                if (!cachedData?.pages) return
+                const postExists = cachedData.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (!postExists) return
+
+                favoritesCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
+                    ...cachedData,
+                    pages: cachedData.pages.map(page => {
+                        if (!page?.data) return page
+                        return {
+                            ...page,
+                            data: page.data.map(favorite => {
+                                if (favorite.post.id !== postId) return favorite
+                                const delta = favorite.post.hasFavoritedByUser ? -1 : 1
+                                return {
+                                    ...favorite,
+                                    post: {
+                                        ...favorite.post,
+                                        hasFavoritedByUser: !favorite.post.hasFavoritedByUser,
+                                        _count: {
+                                            ...favorite.post._count,
+                                            favorites: favorite.post._count.favorites + delta
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+                queryClient.setQueryData(queryKey, updatedData)
+            })
+
+            return { feedCache, favoritesCache }
         },
         onSuccess: async (data, variables) => {
             const { postId } = variables
             const { hasFavorited, favoriteCount } = data
-            const cachedData = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
-            await queryClient.invalidateQueries({ queryKey: ["profile-favorites"] })
 
-            cachedData.forEach(([queryKey, cached]) => {
+            const cachedFeedData = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            cachedFeedData.forEach(([queryKey, cached]) => {
                 const isPostInCache = cached?.pages.some(page => page.data.some(post => post.id === postId))
                 if (cached && isPostInCache) {
-                    const updatedData: ToggleFavoriteMutationContext['previousData'] = {
+                    const updatedData = {
                         ...cached,
                         pages: cached.pages.map(page => ({
                             ...page,
-                            data: page.data.map(post => (
-                                post.id === postId ?
-                                    {
+                            data: page.data.map(post =>
+                                post.id === postId
+                                    ? {
                                         ...post,
                                         hasFavoritedByUser: hasFavorited,
                                         _count: {
                                             ...post._count,
                                             favorites: favoriteCount
                                         }
+                                    }
+                                    : post
+                            )
+                        }))
+                    }
+                    queryClient.setQueryData(queryKey, updatedData)
+                }
+            })
 
-                                    } : post
-                            ))
+            const cachedFavoritesData = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            cachedFavoritesData.forEach(([queryKey, cached]) => {
+                const isPostInCache = cached?.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (cached && isPostInCache) {
+                    const updatedData = {
+                        ...cached,
+                        pages: cached.pages.map(page => {
+                            if (!page?.data) return page
+                            return {
+                                ...page,
+                                data: page.data.map(favorite =>
+                                    favorite.post.id === postId
+                                        ? {
+                                            ...favorite,
+                                            post: {
+                                                ...favorite.post,
+                                                hasFavoritedByUser: hasFavorited,
+                                                _count: {
+                                                    ...favorite.post._count,
+                                                    favorites: favoriteCount
+                                                }
+                                            }
+                                        }
+                                        : favorite
+                                )
+                            }
+                        })
+                    }
+                    queryClient.setQueryData(queryKey, updatedData)
+                }
+            })
+
+            await queryClient.invalidateQueries({ queryKey: ["profile-favorites"] })
+        },
+        onError(error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>, _, context) {
+            const { type, message } = errorHandler(error)
+
+            context?.feedCache.forEach(({ queryKey, previousData }) => {
+                queryClient.setQueryData(queryKey, previousData)
+            })
+
+            context?.favoritesCache.forEach(({ queryKey, previousData }) => {
+                queryClient.setQueryData(queryKey, previousData)
+            })
+
+            const types: typeof type[] = ["offline", "server_error", "timeout", "unreachable"]
+            if (types.includes(type)) toast.error(message, { dedup: true })
+        },
+    })
+
+    /**
+     * Optimistic Update for Like in Favorites View
+     * Handles GetFavoritePostsResponse structure where posts are nested inside favorite objects
+     * onError: Revert to previous cached data
+     * onSuccess: Sync to server response
+     * onMutate: Cancel queries, store previous data, do optimistic update on UI.
+     * This optimistically updates both Profile Favorites View and Feed View
+     */
+    const toggleLikeForFavoritesMutation = useMutation({
+        mutationFn: ({ postId }: ToggleLikeParams) => feedService.toggleLike({ postId }),
+        retry(failureCount, error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>) {
+            const { type } = errorHandler(error)
+            if (type === "unreachable") return failureCount < 2
+            return false
+        },
+        onMutate: async (variables) => {
+            const { postId } = variables
+
+            await queryClient.cancelQueries({ queryKey: ["profile-favorites"] })
+            await queryClient.cancelQueries({ queryKey: ["feed"] })
+
+            const previousCachedFavorites = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            let favoritesCache: ToggleLikeForFavoritesMutationContext['favoritesCache'] = []
+
+            previousCachedFavorites.forEach(([queryKey, cachedData]) => {
+                if (!cachedData?.pages) return
+                const postExists = cachedData.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (!postExists) return
+
+                favoritesCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
+                    ...cachedData,
+                    pages: cachedData.pages.map(page => {
+                        if (!page?.data) return page
+                        return {
+                            ...page,
+                            data: page.data.map(favorite => {
+                                if (favorite.post.id !== postId) return favorite
+                                const delta = favorite.post.hasLikedByUser ? -1 : 1
+                                return {
+                                    ...favorite,
+                                    post: {
+                                        ...favorite.post,
+                                        hasLikedByUser: !favorite.post.hasLikedByUser,
+                                        _count: {
+                                            ...favorite.post._count,
+                                            likes: favorite.post._count.likes + delta
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+                queryClient.setQueryData(queryKey, updatedData)
+            })
+
+            const previousCachedFeedPosts = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            let feedCache: ToggleLikeForFavoritesMutationContext['feedCache'] = []
+
+            previousCachedFeedPosts.forEach(([queryKey, cachedData]) => {
+                if (!cachedData?.pages) return
+                const postExists = cachedData.pages.some(page => page.data.some(post => post.id === postId))
+                if (!postExists) return
+
+                feedCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
+                    ...cachedData,
+                    pages: cachedData.pages.map(page => ({
+                        ...page,
+                        data: page.data.map(post => {
+                            if (post.id !== postId) return post
+                            const delta = post.hasLikedByUser ? -1 : 1
+                            return {
+                                ...post,
+                                hasLikedByUser: !post.hasLikedByUser,
+                                _count: {
+                                    ...post._count,
+                                    likes: post._count.likes + delta
+                                }
+                            }
+                        })
+                    }))
+                }
+                queryClient.setQueryData(queryKey, updatedData)
+            })
+
+            return { feedCache, favoritesCache }
+        },
+        onSuccess: async (data, variables) => {
+            const { postId } = variables
+            const { hasLiked, likeCount } = data
+
+            const cachedFavoritesData = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            cachedFavoritesData.forEach(([queryKey, cached]) => {
+                const isPostInCache = cached?.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (cached && isPostInCache) {
+                    const updatedData = {
+                        ...cached,
+                        pages: cached.pages.map(page => {
+                            if (!page?.data) return page
+                            return {
+                                ...page,
+                                data: page.data.map(favorite =>
+                                    favorite.post.id === postId
+                                        ? {
+                                            ...favorite,
+                                            post: {
+                                                ...favorite.post,
+                                                hasLikedByUser: hasLiked,
+                                                _count: {
+                                                    ...favorite.post._count,
+                                                    likes: likeCount
+                                                }
+                                            }
+                                        }
+                                        : favorite
+                                )
+                            }
+                        })
+                    }
+                    queryClient.setQueryData(queryKey, updatedData)
+                }
+            })
+
+            const cachedFeedData = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            cachedFeedData.forEach(([queryKey, cached]) => {
+                const isPostInCache = cached?.pages.some(page => page.data.some(post => post.id === postId))
+                if (cached && isPostInCache) {
+                    const updatedData = {
+                        ...cached,
+                        pages: cached.pages.map(page => ({
+                            ...page,
+                            data: page.data.map(post =>
+                                post.id === postId
+                                    ? {
+                                        ...post,
+                                        hasLikedByUser: hasLiked,
+                                        _count: {
+                                            ...post._count,
+                                            likes: likeCount
+                                        }
+                                    }
+                                    : post
+                            )
                         }))
                     }
                     queryClient.setQueryData(queryKey, updatedData)
@@ -227,14 +584,212 @@ export const useFeedStore = defineStore('feed', () => {
             })
         },
         onError(error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>, _, context) {
-            const { type, message } = errorHandler(error);
-            context?.previousCachedFeedPostsData.forEach(({ queryKey, previousData }) => {
+            const { type, message } = errorHandler(error)
+
+            context?.favoritesCache.forEach(({ queryKey, previousData }) => {
                 queryClient.setQueryData(queryKey, previousData)
             })
+
+            context?.feedCache.forEach(({ queryKey, previousData }) => {
+                queryClient.setQueryData(queryKey, previousData)
+            })
+
             const types: typeof type[] = ["offline", "server_error", "timeout", "unreachable"]
             if (types.includes(type)) toast.error(message, { dedup: true })
         },
     })
+
+    /**
+     * Optimistic Update for Favorite in Favorites View
+     * Handles GetFavoritePostsResponse structure where posts are nested inside favorite objects
+     * Special behavior: Removes items from list when unfavoriting (they shouldn't appear in favorites anymore)
+     * onError: Revert to previous cached data
+     * onSuccess: Sync to server response
+     * onMutate: Cancel queries, store previous data, do optimistic update on UI
+     * This optimistically updates both Profile Favorites View and Feed View
+     */
+    const toggleFavoriteForFavoritesMutation = useMutation({
+        mutationFn: ({ postId }: ToggleFavoriteParams) => feedService.toggleFavorite({ postId }),
+        retry(failureCount, error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>) {
+            const { type } = errorHandler(error)
+            if (type === "unreachable") return failureCount < 2
+            return false
+        },
+        onMutate: async (variables) => {
+            const { postId } = variables
+
+            await queryClient.cancelQueries({ queryKey: ["profile-favorites"] })
+            await queryClient.cancelQueries({ queryKey: ["feed"] })
+
+            const previousCachedFavorites = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            let favoritesCache: ToggleFavoriteForFavoritesMutationContext['favoritesCache'] = []
+
+            previousCachedFavorites.forEach(([queryKey, cachedData]) => {
+                if (!cachedData?.pages) return
+                const postExists = cachedData.pages.some(page => page?.data?.some(fav => fav.post.id === postId))
+                if (!postExists) return
+
+                favoritesCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const queryUsername = (queryKey[1] as { username: string })?.username
+                const isAuthUser = queryUsername === authStore.getUsername
+
+                const updatedData = {
+                    ...cachedData,
+                    pages: cachedData.pages.map(page => {
+                        if (!page?.data) return page
+
+                        if (isAuthUser) {
+                            return {
+                                ...page,
+                                data: page.data.filter(favorite => favorite.post.id !== postId)
+                            }
+                        }
+
+                        return {
+                            ...page,
+                            data: page.data.map(favorite => {
+                                if (favorite.post.id !== postId) return favorite
+                                const delta = favorite.post.hasFavoritedByUser ? -1 : 1
+                                return {
+                                    ...favorite,
+                                    post: {
+                                        ...favorite.post,
+                                        hasFavoritedByUser: !favorite.post.hasFavoritedByUser,
+                                        _count: {
+                                            ...favorite.post._count,
+                                            favorites: favorite.post._count.favorites + delta
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+                }
+                queryClient.setQueryData(queryKey, updatedData)
+            })
+
+            const previousCachedFeedPosts = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            let feedCache: ToggleFavoriteForFavoritesMutationContext['feedCache'] = []
+
+            previousCachedFeedPosts.forEach(([queryKey, cachedData]) => {
+                if (!cachedData?.pages) return
+                const postExists = cachedData.pages.some(page => page.data.some(post => post.id === postId))
+                if (!postExists) return
+
+                feedCache.push({ queryKey: queryKey as unknown[], previousData: cachedData })
+
+                const updatedData = {
+                    ...cachedData,
+                    pages: cachedData.pages.map(page => ({
+                        ...page,
+                        data: page.data.map(post => {
+                            if (post.id !== postId) return post
+                            const delta = post.hasFavoritedByUser ? -1 : 1
+                            return {
+                                ...post,
+                                hasFavoritedByUser: !post.hasFavoritedByUser,
+                                _count: {
+                                    ...post._count,
+                                    favorites: post._count.favorites + delta
+                                }
+                            }
+                        })
+                    }))
+                }
+                queryClient.setQueryData(queryKey, updatedData)
+            })
+
+            return { feedCache, favoritesCache }
+        },
+        onSuccess: async (data, variables) => {
+            const { postId } = variables
+            const { hasFavorited, favoriteCount } = data
+
+            const cachedFavoritesData = queryClient.getQueriesData<InfiniteData<GetFavoritePostsResponse>>({ queryKey: ["profile-favorites"] })
+            cachedFavoritesData.forEach(([queryKey, cached]) => {
+                const queryUsername = (queryKey[1] as { username: string })?.username
+                const isAuthUser = queryUsername === authStore.getUsername
+
+                if (cached) {
+                    const updatedData = {
+                        ...cached,
+                        pages: cached.pages.map(page => {
+                            if (!page?.data) return page
+
+                            if (isAuthUser && !hasFavorited) {
+                                return {
+                                    ...page,
+                                    data: page.data.filter(favorite => favorite.post.id !== postId)
+                                }
+                            }
+
+                            return {
+                                ...page,
+                                data: page.data.map(favorite =>
+                                    favorite.post.id === postId
+                                        ? {
+                                            ...favorite,
+                                            post: {
+                                                ...favorite.post,
+                                                hasFavoritedByUser: hasFavorited,
+                                                _count: {
+                                                    ...favorite.post._count,
+                                                    favorites: favoriteCount
+                                                }
+                                            }
+                                        }
+                                        : favorite
+                                )
+                            }
+                        })
+                    }
+                    queryClient.setQueryData(queryKey, updatedData)
+                }
+            })
+
+            const cachedFeedData = queryClient.getQueriesData<InfiniteData<GetFeedWithCursorResponse>>({ queryKey: ["feed"] })
+            cachedFeedData.forEach(([queryKey, cached]) => {
+                const isPostInCache = cached?.pages.some(page => page.data.some(post => post.id === postId))
+                if (cached && isPostInCache) {
+                    const updatedData = {
+                        ...cached,
+                        pages: cached.pages.map(page => ({
+                            ...page,
+                            data: page.data.map(post =>
+                                post.id === postId
+                                    ? {
+                                        ...post,
+                                        hasFavoritedByUser: hasFavorited,
+                                        _count: {
+                                            ...post._count,
+                                            favorites: favoriteCount
+                                        }
+                                    }
+                                    : post
+                            )
+                        }))
+                    }
+                    queryClient.setQueryData(queryKey, updatedData)
+                }
+            })
+        },
+        onError(error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>, _, context) {
+            const { type, message } = errorHandler(error)
+
+            context?.favoritesCache.forEach(({ queryKey, previousData }) => {
+                queryClient.setQueryData(queryKey, previousData)
+            })
+
+            context?.feedCache.forEach(({ queryKey, previousData }) => {
+                queryClient.setQueryData(queryKey, previousData)
+            })
+
+            const types: typeof type[] = ["offline", "server_error", "timeout", "unreachable"]
+            if (types.includes(type)) toast.error(message, { dedup: true })
+        },
+    })
+
 
     const toggleLike = ({ postId }: ToggleLikeParams) => {
         toggleLikeMutation.mutate({ postId })
@@ -242,7 +797,12 @@ export const useFeedStore = defineStore('feed', () => {
     const toggleFavorite = ({ postId }: ToggleFavoriteParams) => {
         toggleFavoriteMutation.mutate({ postId })
     }
-
+    const toggleLikeForFavorites = ({ postId }: ToggleLikeParams) => {
+        toggleLikeForFavoritesMutation.mutate({ postId })
+    }
+    const toggleFavoriteForFavorites = ({ postId }: ToggleFavoriteParams) => {
+        toggleFavoriteForFavoritesMutation.mutate({ postId })
+    }
 
 
     return {
@@ -250,5 +810,7 @@ export const useFeedStore = defineStore('feed', () => {
         createPost,
         toggleLike,
         toggleFavorite,
+        toggleLikeForFavorites,
+        toggleFavoriteForFavorites,
     }
 })

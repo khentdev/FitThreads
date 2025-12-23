@@ -7,7 +7,7 @@ import { createPostController, getFeedController, getFavoritedPostsController, t
 const feedRoutes = new Hono().basePath("/feed");
 
 feedRoutes.get("/", verifyOptionalToken, getFeedController)
-feedRoutes.get("/favorites", getFavoritedPostsController)
+feedRoutes.get("/favorites", verifyOptionalToken, getFavoritedPostsController)
 
 feedRoutes
     .use(verifyToken)

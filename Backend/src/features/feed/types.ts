@@ -62,12 +62,14 @@ export type GetFeedResponseDTO = {
 export type GetFavoritedPostsParams = {
     username: string,
     cursor?: string,
-    limit?: number
+    limit?: number,
+    authenticatedUserId?: string
 }
 export type GetUserFavoritesParams = {
     username: string,
     cursor?: { id: string },
-    limit?: number
+    limit?: number,
+    authenticatedUserId?: string
 }
 export type getUserFavoritesResponseDTO = {
     data: {
@@ -90,6 +92,8 @@ export type getUserFavoritesResponseDTO = {
                 favorites: number;
                 likes: number;
             };
+            hasLikedByUser: boolean,
+            hasFavoritedByUser: boolean
         };
         createdAt: Date;
     }[];
