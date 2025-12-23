@@ -108,12 +108,7 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
 };
 
 
-/**
- * I will update this later 
- * Include likes, favorites on prisma query
- * make hasLike and hasFavorited flags on DTO
- */
-export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUserFavoritesParams): Promise<getUserFavoritesResponseDTO> => {
+export const getUserFavorites = async ({ username, cursor, limit = 20, authenticatedUserId }: GetUserFavoritesParams): Promise<getUserFavoritesResponseDTO> => {
     const user = await prisma.user.findUnique({
         where: { username },
         select: { id: true }
@@ -147,6 +142,8 @@ export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUser
                     title: true,
                     content: true,
                     createdAt: true,
+                    likes: true,
+                    favorites: true,
                     author: { select: { id: true, username: true, bio: true } },
                     postTags: { select: { tag: { select: { name: true } } } },
                     _count: { select: { likes: true, favorites: true } },
@@ -164,9 +161,19 @@ export const getUserFavorites = async ({ username, cursor, limit = 20 }: GetUser
             createdAt: data[data.length - 1].createdAt
         })
         : null;
-
+        
+    const transformedData = data.map(post => ({
+        ...post,
+        post: {
+            ...post.post,
+            hasLikedByUser: post.post.likes.some(p => p.userId === authenticatedUserId),
+            hasFavoritedByUser: post.post.favorites.some(p => p.userId === authenticatedUserId),
+            likes: undefined,
+            favorites: undefined
+        }
+    }))
     return {
-        data,
+        data: transformedData,
         nextCursor,
         hasMore
     };

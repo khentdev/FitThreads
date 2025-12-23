@@ -19,13 +19,16 @@ export const getFeedController = async (c: Context<{ Variables: OptionalVerifyTo
     return c.json(result, 200)
 }
 
-export const getFavoritedPostsController = async (c: Context) => {
+export const getFavoritedPostsController = async (c: Context<{ Variables: OptionalVerifyTokenVariables }>) => {
     const username = c.req.query("username") || ""
     const cursor = c.req.query("cursor") || ""
     const rawLimit = c.req.query("limit") || ""
     const limit = Math.min(Math.max(Number(rawLimit) || 20, 1), 20);
 
-    const result = await getFavoritedPostsService({ username, cursor, limit })
+    const optionalAuth = c.get("optionalVerifyTokenVariables")
+    const authenticatedUserId = optionalAuth?.userId
+
+    const result = await getFavoritedPostsService({ username, cursor, limit, authenticatedUserId })
     return c.json(result, 200)
 }
 

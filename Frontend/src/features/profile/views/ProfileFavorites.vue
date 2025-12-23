@@ -1,5 +1,5 @@
 <template>
-    <div class="flex flex-col gap-4 mt-4">
+    <div class="flex flex-col gap-4">
         <PostSkeleton v-if="query.isPending.value" :count="3" />
 
         <ErrorRetry v-else-if="query.isError.value"
@@ -40,16 +40,22 @@
                 </div>
 
                 <div class="flex gap-6">
-                    <div
-                        class="flex gap-2 items-center transition-colors cursor-pointer text-text-muted hover:text-orange-500 group">
-                        <Flame class="w-5 h-5 group-hover:fill-orange-500/20" />
-                        <span class="text-sm font-medium">{{ post._count.likes }}</span>
-                    </div>
-                    <div
-                        class="flex gap-2 items-center transition-colors cursor-pointer text-text-muted hover:text-blue-500 group">
-                        <Bookmark class="w-5 h-5 group-hover:fill-blue-500/20" />
-                        <span class="text-sm font-medium">{{ post._count.favorites }}</span>
-                    </div>
+                    <button @click="handleToggleLike({ postId: post.id })"
+                        class="flex gap-2 rounded-xl p-2 like-button items-center transition-all cursor-pointer text-text-muted active:scale-90 hover:bg-surface-elevated group">
+                        <Flame class="size-5 like-icon group-active:stroke-red-500 group-active:fill-red-500"
+                            :class="{ 'fill-red-500 stroke-red-500': post.hasLikedByUser }" />
+                        <span class="text-sm font-medium group-active:text-red-500"
+                            :class="{ 'text-red-500': post.hasLikedByUser }">{{ post._count.likes }}</span>
+                    </button>
+                    <button @click="handleToggleFavorite({ postId: post.id })"
+                        class="flex gap-2 rounded-xl p-2 favorite-button items-center transition-all cursor-pointer text-text-muted active:scale-90 hover:bg-surface-elevated group">
+                        <Bookmark
+                            class="size-5 favorite-icon group-active:stroke-orange-500 group-active:fill-orange-500"
+                            :class="{ 'fill-orange-500 stroke-orange-500': post.hasFavoritedByUser }" />
+                        <span class="text-sm font-medium group-active:text-orange-500"
+                            :class="{ 'text-orange-500': post.hasFavoritedByUser }">{{ post._count.favorites
+                            }}</span>
+                    </button>
                 </div>
             </div>
 
@@ -72,13 +78,22 @@
     import EmptyState from '../../../shared/components/empty/EmptyState.vue';
     import ErrorRetry from '../../../shared/components/error/ErrorRetry.vue';
     import PostSkeleton from '../../../shared/components/skeleton/PostSkeleton.vue';
+    import { useLoginModal } from '../../../shared/composables/useLoginModal';
+    import { useAuthStore } from '../../auth/store/authStore';
     import { useUserFavorites } from '../../feed/composables/useUserFavorites';
+    import { useFeedStore } from '../../feed/store/feedStore';
+    import type { ToggleFavoriteParams, ToggleLikeParams } from '../../feed/types';
+
 
     const route = useRoute();
     const router = useRouter()
     const username = computed(() => route.params["username"] as string);
-
     const query = useUserFavorites(username);
+
+    const feedStore = useFeedStore()
+    const authStore = useAuthStore()
+    const { openModal } = useLoginModal()
+
 
     const allPosts = computed(() => {
         if (!query.data.value?.pages) return [];
@@ -117,4 +132,43 @@
 
         return postDate.toLocaleDateString();
     };
+
+    const handleToggleLike = ({ postId }: ToggleLikeParams) => {
+        if (!authStore.hasAuthenticated) {
+            openModal('like');
+            return;
+        }
+        feedStore.toggleLikeForFavorites({ postId })
+    }
+
+    const handleToggleFavorite = ({ postId }: ToggleFavoriteParams) => {
+        if (!authStore.hasAuthenticated) {
+            openModal('favorite');
+            return;
+        }
+        feedStore.toggleFavoriteForFavorites({ postId })
+    }
 </script>
+<style scoped>
+@keyframes fire-flare {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.like-button:active .like-icon {
+    animation: fire-flare 400ms ease-out;
+}
+
+.favorite-button:active .favorite-icon {
+    animation: fire-flare 400ms ease-out;
+}
+</style>

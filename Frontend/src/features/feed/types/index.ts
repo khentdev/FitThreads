@@ -72,6 +72,8 @@ export type GetFavoritePostsResponse = {
                 favorites: number;
                 likes: number;
             };
+            hasLikedByUser: boolean,
+            hasFavoritedByUser: boolean
         };
         createdAt: Date;
     }[];
