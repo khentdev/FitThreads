@@ -773,6 +773,7 @@ export const useFeedStore = defineStore('feed', () => {
                     queryClient.setQueryData(queryKey, updatedData)
                 }
             })
+            await queryClient.invalidateQueries({ queryKey: ["profile-favorites"] })
         },
         onError(error: AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>, _, context) {
             const { type, message } = errorHandler(error)
