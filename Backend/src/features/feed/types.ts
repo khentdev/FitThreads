@@ -101,3 +101,8 @@ export type ToggleLikeParams = {
     postId: string,
     userId: string
 }
+
+export type ToggleFavoriteParams = {
+    postId: string,
+    userId: string
+}

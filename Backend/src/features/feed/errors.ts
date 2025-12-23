@@ -21,7 +21,8 @@ export const FEED_ERROR_CODES = {
     USER_NOT_FOUND: "USER_NOT_FOUND",
     FAVORITED_POSTS_RETRIEVAL_FAILED: "FAVORITED_POSTS_RETRIEVAL_FAILED",
     POST_NOT_FOUND: "POST_NOT_FOUND",
-    TOGGLE_LIKE_FAILED: "TOGGLE_LIKE_FAILED"
+    TOGGLE_LIKE_FAILED: "TOGGLE_LIKE_FAILED",
+    TOGGLE_FAVORITE_FAILED: "TOGGLE_FAVORITE_FAILED"
 } as const
 
 export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
@@ -104,6 +105,11 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "TOGGLE_LIKE_FAILED",
         status: 500,
         message: "Failed to toggle like. Please try again."
+    },
+    TOGGLE_FAVORITE_FAILED: {
+        code: "TOGGLE_FAVORITE_FAILED",
+        status: 500,
+        message: "Failed to toggle favorite. Please try again."
     }
 }
 export type FeedErrorCode = keyof typeof FEED_ERROR_CODES

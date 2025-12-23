@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { CreatePostParamsVariables } from "./types.js";
-import { createPostService, getFeedService, getFavoritedPostsService, toggleLikeService } from "./service.js";
+import { createPostService, getFeedService, getFavoritedPostsService, toggleLikeService, toggleFavoriteService } from "./service.js";
 import { getSanitizedFeedQuery } from "./utils/getSanitizedFeedQuery.js";
 import { OptionalVerifyTokenVariables } from "../../middleware/validateOptionalAccessToken.js";
 import { VerifyTokenVariables } from "../../middleware/validateAccessToken.js";
@@ -33,5 +33,12 @@ export const toggleLikeController = async (c: Context<{ Variables: VerifyTokenVa
     const postId = c.req.param("postId")
     const { user } = c.get("verifyTokenVariables")
     const result = await toggleLikeService({ postId, userId: user.id })
+    return c.json(result, 200)
+}
+
+export const toggleFavoriteController = async (c: Context<{ Variables: VerifyTokenVariables }>) => {
+    const postId = c.req.param("postId")
+    const { user } = c.get("verifyTokenVariables")
+    const result = await toggleFavoriteService({ postId, userId: user.id })
     return c.json(result, 200)
 }
