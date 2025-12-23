@@ -1,8 +1,8 @@
 import { AppError } from "../../errors/customError.js";
 import logger from "../../lib/logger.js";
 import { isValidUUID } from "../../lib/validation.js";
-import { createPost, getFeed, getUserFavorites, toggleLike, checkPostExists } from "./data.js";
-import type { CreatePostParams, GetFavoritedPostsParams, GetFeedParams, GetFeedResponseDTO } from "./types.js";
+import { createPost, getFeed, getUserFavorites, toggleLike, checkPostExists, toggleFavorite } from "./data.js";
+import type { CreatePostParams, GetFavoritedPostsParams, GetFeedParams, GetFeedResponseDTO, ToggleFavoriteParams, ToggleLikeParams } from "./types.js";
 import { decodeCursor as decodeFeedCursor } from "./utils/cursor.js";
 
 export const createPostService = async ({ authorId, title, content, postTags }: CreatePostParams) => {
@@ -35,7 +35,7 @@ export const getFavoritedPostsService = async ({ username, cursor, limit }: GetF
     }
 }
 
-export const toggleLikeService = async ({ postId, userId }: { postId: string, userId: string }) => {
+export const toggleLikeService = async ({ postId, userId }: ToggleLikeParams) => {
     // This will never execute unless unknown attacker explicitly tries to inject invalid UUID
     if (!isValidUUID(postId)) throw new Error("Invalid Post UUID")
 
@@ -48,5 +48,21 @@ export const toggleLikeService = async ({ postId, userId }: { postId: string, us
     } catch (err) {
         logger.error({ error: err }, "Failed to toggle like.")
         throw new AppError("TOGGLE_LIKE_FAILED", { field: "like" })
+    }
+}
+
+export const toggleFavoriteService = async ({ postId, userId }: ToggleFavoriteParams) => {
+    // This will never execute unless unknown attacker explicitly tries to inject invalid UUID
+    if (!isValidUUID(postId)) throw new Error("Invalid Post UUID")
+
+    const postExists = await checkPostExists(postId)
+    if (!postExists)
+        throw new AppError("POST_NOT_FOUND", { field: "post" })
+
+    try {
+        return await toggleFavorite({ postId, userId })
+    } catch (err) {
+        logger.error({ error: err }, "Failed to toggle favorite.")
+        throw new AppError("TOGGLE_FAVORITE_FAILED", { field: "favorite" })
     }
 }

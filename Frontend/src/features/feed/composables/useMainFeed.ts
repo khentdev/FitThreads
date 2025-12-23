@@ -6,7 +6,7 @@ import { toValue } from "vue"
 
 export const useMainFeed = (sortBy: MaybeRefOrGetter<'recent' | 'top'> = 'recent') => {
     return useInfiniteQuery({
-        queryKey: ['feed', { sortBy: toValue(sortBy) }],
+        queryKey: ['feed', { sortBy }],
         queryFn: ({ pageParam }) => feedService.getFeedWithCursor({
             cursor: pageParam,
             limit: 5,

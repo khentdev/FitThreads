@@ -86,3 +86,11 @@ export type ToggleLikeResponse = {
     hasLiked: boolean
     likeCount: number
 }
+
+export type ToggleFavoriteParams = {
+    postId: string
+}
+export type ToggleFavoriteResponse = {
+    hasFavorited: boolean
+    favoriteCount: number
+}

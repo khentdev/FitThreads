@@ -1,6 +1,6 @@
 import { Prisma, prisma } from "../../../prisma/prismaConfig.js";
 import { encodeCursor } from "../../lib/cursor.js";
-import { CreatePostParams, GetFeedParams, GetFeedResponseDTO, GetUserFavoritesParams, getUserFavoritesResponseDTO, ToggleLikeParams } from "./types.js";
+import { CreatePostParams, GetFeedParams, GetFeedResponseDTO, GetUserFavoritesParams, getUserFavoritesResponseDTO, ToggleFavoriteParams, ToggleLikeParams } from "./types.js";
 import { encodeCursor as encodeFeedCursor } from "./utils/cursor.js";
 
 export const createPost = async ({
@@ -205,4 +205,29 @@ export const checkPostExists = async (postId: string) => {
         select: { id: true }
     })
     return !!post
+}
+/**
+ * req 1: Delete favorite 
+ * if no delete count -> deleted.count = 0
+ * wasAlreadyLiked =  deleted.count > 0 (false)
+ * Condition: If no delete count -> create favorite
+ * Favorite exist now in db
+ * hasLiked = !wasAlreadyLiked (true)
+ * 
+ * req 2: Delete Favorite
+ * if delete count -> deleted.count = 1
+ * wasAlreadyFavorited =  deleted.count > 0 (true)
+ * Condition: If delete count -> delete favorite
+ * Favorite does not exist in db
+ * hasFavorited = !wasAlreadyFavorited (false)
+ */
+export const toggleFavorite = async ({ postId, userId }: ToggleFavoriteParams) => {
+    const deleted = await prisma.favorite.deleteMany({ where: { userId, postId } })
+    const wasAlreadyFavorited = deleted.count > 0
+    if (!wasAlreadyFavorited) {
+        await prisma.favorite.create({ data: { postId, userId } })
+    }
+    const favoriteCount = await prisma.favorite.count({ where: { postId } })
+    const hasFavorited = !wasAlreadyFavorited
+    return { hasFavorited, favoriteCount }
 }
