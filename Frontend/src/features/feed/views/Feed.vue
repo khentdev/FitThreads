@@ -79,7 +79,7 @@
     import { useFeedStore } from '../store/feedStore';
     import { useAuthStore } from '../../auth/store/authStore';
     import { useLoginModal } from '../../../shared/composables/useLoginModal';
-    import type { GetFeedWithCursorResponse, ToggleLikeParams } from '../types';
+    import type { GetFeedWithCursorResponse, ToggleFavoriteParams, ToggleLikeParams } from '../types';
 
     const router = useRouter()
     const query = useMainFeed('recent');
@@ -134,13 +134,12 @@
         feedStore.toggleLike({ postId })
     }
 
-    const handleToggleFavorite = ({ postId }: { postId: string }) => {
+    const handleToggleFavorite = ({ postId }: ToggleFavoriteParams) => {
         if (!authStore.hasAuthenticated) {
             openModal('favorite');
             return;
         }
-        // TODO: Implement favorite toggle when favorite fn (at feedStore) is ready
-        console.log('Favorite toggle for post:', postId);
+        feedStore.toggleFavorite({ postId })
     }
 </script>
 <style scoped>
