@@ -14,3 +14,10 @@ export type SearchProfilesResponseDTO = {
     nextCursor: string | null;
     hasMore: boolean;
 }
+export type UpdateProfileParams = {
+    username: string
+    bio?: string
+}
+export type UpdateProfileParamsVariables = {
+    verifyTokenVariables: UpdateProfileParams
+}

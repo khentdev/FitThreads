@@ -1,5 +1,5 @@
 import { prisma } from "../../../prisma/prismaConfig.js";
-import type { getUserProfileResponseDTO, SearchProfilesResponseDTO } from "./types.js";
+import type { getUserProfileResponseDTO, SearchProfilesResponseDTO, UpdateProfileParams } from "./types.js";
 import { decodeCursor, encodeCursor } from "../../lib/cursor.js";
 
 export const getUserProfile = async (username: string): Promise<getUserProfileResponseDTO | null> => {
@@ -43,7 +43,7 @@ export const searchProfiles = async (searchQuery: string, limit = 20, cursor?: s
         },
         orderBy: { username: "asc" },
         take: limit + 1,
-        cursor: decodedCursor ? { id: decodedCursor.id} : undefined,
+        cursor: decodedCursor ? { id: decodedCursor.id } : undefined,
         skip: decodedCursor ? 1 : 0,
         select: {
             id: true,
@@ -73,3 +73,21 @@ export const searchProfiles = async (searchQuery: string, limit = 20, cursor?: s
 
     return { users: mappedUsers, nextCursor, hasMore };
 };
+
+export const updateProfile = async ({ username, bio }: UpdateProfileParams): Promise<getUserProfileResponseDTO | null> => {
+    const user = await prisma.user.update({
+        where: { username },
+        data: { bio }
+    });
+    
+    return {
+        username: user.username,
+        bio: user.bio,
+        joinedAt: user.createdAt,
+        totalLikes: await prisma.like.count({
+            where: {
+                post: { authorId: user.id }
+            }
+        })
+    };
+}
