@@ -14,3 +14,4 @@ export type ProfileSearchResponse = {
     nextCursor: string | null,
     hasMore: boolean
 }
+export type UpdateProfileResponse =  UserProfile
