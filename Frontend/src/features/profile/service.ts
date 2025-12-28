@@ -1,6 +1,6 @@
 import { axiosInstance } from "../../core/api/axiosConfig";
 import { getTypedResponse } from "../../shared/types/types";
-import type { ProfileSearchQueryParams, ProfileSearchResponse, UserProfile } from "./types";
+import type { ProfileSearchQueryParams, ProfileSearchResponse, UpdateProfileResponse, UserProfile } from "./types";
 
 
 export const profileService = {
@@ -18,6 +18,10 @@ export const profileService = {
         });
         return getTypedResponse<ProfileSearchResponse>(res)
     },
-    
+    updateProfile: async ({ bio }: { bio: string }) => {
+        const res = await axiosInstance.put("/profile/update", { bio })
+        return getTypedResponse<UpdateProfileResponse>(res)
+    }
+
 
 }
