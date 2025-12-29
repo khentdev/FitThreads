@@ -36,6 +36,19 @@ export const feedRoutes: RouteRecordRaw[] = [
                 path: 'settings',
                 name: 'settings',
                 component: () => import("./views/Settings.vue"),
+                redirect: { name: 'settings-index' },
+                children: [
+                    {
+                        path: '',
+                        name: 'settings-index',
+                        component: () => import("./views/SettingsIndex.vue"),
+                    },
+                    {
+                        path: 'appearance',
+                        name: 'settings-appearance',
+                        component: () => import("./views/Appearance.vue"),
+                    },
+                ],
             },
         ],
     },

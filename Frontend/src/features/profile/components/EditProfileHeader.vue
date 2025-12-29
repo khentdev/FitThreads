@@ -1,9 +1,9 @@
 <template>
     <div>
         <div class="flex justify-between items-center mb-5">
-            <button @click="backToDefault"><arrow-left class="size-5" /></button>
-            <h2 class="font-medium">{{ headerLabel }}</h2>
-            <button @click="fn?.()">Done</button>
+            <button @click="backToDefault"><arrow-left class="size-5 text-text-default" /></button>
+            <h2 class="font-medium text-text-default">{{ headerLabel }}</h2>
+            <button @click="fn?.()" class="text-text-default">Done</button>
         </div>
         <slot></slot>
     </div>

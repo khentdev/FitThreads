@@ -15,7 +15,7 @@
                     </label>
                     <input id="otp-input" ref="otpInputRef" v-model="otpCode" type="text" inputmode="numeric"
                         maxlength="6" placeholder="000000" @input="handleOTPInput"
-                        class="px-4 h-12 text-base font-medium tracking-widest text-center rounded-lg border shadow transition-colors md:h-14 md:text-lg border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-border-focus" />
+                        class="px-4 h-12 text-base font-medium tracking-widest text-center rounded-lg border shadow transition-colors placeholder:text-text-muted text-text-default md:h-14 md:text-lg border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-border-focus" />
 
                     <p class="text-xs text-center text-text-muted">Enter the 6-digit code</p>
                     <div v-if="authStore.errors.otpError || authStore.errors.formError"

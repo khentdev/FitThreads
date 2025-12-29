@@ -1,10 +1,10 @@
 <template>
     <div class="px-4 md:px-0">
-        <div class="max-w-md mx-auto py-16 text-center">
-            <h3 v-if="title" class="text-lg font-semibold text-text-default mb-3">
+        <div class="py-16 mx-auto max-w-md text-center">
+            <h3 v-if="title" class="mb-3 text-lg font-semibold text-text-default">
                 {{ title }}
             </h3>
-            <p class="text-sm text-text-muted leading-relaxed mb-4 max-w-sm mx-auto">
+            <p class="mx-auto mb-4 max-w-sm text-sm leading-relaxed text-text-muted">
                 {{ message }}
             </p>
             <button v-if="retryable" @click="retryFn?.()" :disabled="isRetrying"
@@ -25,7 +25,7 @@
         retryFn?: () => void
     }
 
-    const props = withDefaults(defineProps<Props>(), {
+    withDefaults(defineProps<Props>(), {
         title: '',
         message: "Something went wrong. Please check your connection and try again.",
         retryable: true,

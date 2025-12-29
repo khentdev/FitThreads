@@ -1,5 +1,5 @@
 <template>
-    <FeedViewLayout title="Create Post">
+    <FeedViewLayout title="Create Post" :showMenu="false">
         <div class="flex flex-col flex-1 w-full min-h-0 md:px-0">
             <div class="flex overflow-hidden flex-col flex-1 p-4 md:rounded-xl border-none bg-surface-app">
                 <div class="flex-none mb-4">

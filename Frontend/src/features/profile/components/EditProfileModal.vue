@@ -3,40 +3,40 @@
         leave-active-class="transition-opacity duration-200 ease-in-out" enter-from-class="opacity-0"
         leave-to-class="opacity-0">
         <div v-if="props.isModalOpen"
-            class="flex h-full fixed inset-0 z-50 justify-center items-center md:p-5 bg-black/30"
+            class="flex fixed inset-0 z-50 justify-center items-center h-full md:p-5 bg-black/30"
             @click.self="closeModal">
             <div ref="modalContainer"
-                class="relative w-full h-full rounded-none md:max-w-md md:rounded-xl md:h-auto bg-bg-primary overflow-hidden md:transition-[height] duration-300 ease-in-out">
+                class="relative w-full h-full rounded-none md:max-w-md md:rounded-xl dark:border dark:border-border-muted md:h-auto bg-bg-primary overflow-hidden md:transition-[height] duration-300 ease-in-out">
                 <div class="relative h-full md:h-auto">
                     <Transition enter-active-class="transition-transform duration-300 ease-in-out"
-                        leave-active-class="transition-transform duration-300 ease-in-out absolute top-0 left-0 w-full h-full md:h-auto"
+                        leave-active-class="absolute top-0 left-0 w-full h-full transition-transform duration-300 ease-in-out md:h-auto"
                         :enter-from-class="`${slideDirection === 'forward' ? 'translate-x-full' : '-translate-x-full'}`"
                         :leave-to-class="`${slideDirection === 'forward' ? '-translate-x-full' : 'translate-x-full z-50'}`"
                         @before-leave="onBeforeLeave" @enter="onEnter" @after-enter="onAfterEnter">
                         <div v-if="getActiveComponent('default')" key="default"
                             class="flex flex-col w-full h-full md:h-auto">
-                            <div class="grid gap-2 w-full p-5 content-start flex-1">
+                            <div class="grid flex-1 gap-2 content-start p-5 w-full">
                                 <!-- Default Header - Hidden on Medium Devices-->
                                 <div class="flex justify-between items-center mb-5 md:hidden">
                                     <button @click="closeModal" :disabled="isSubmittingProfileUpdate">
                                         <Loader2 v-if="isSubmittingProfileUpdate"
-                                            class="size-5 animate-spin stroke-border-strong" />
-                                        <span v-else>Cancel</span>
+                                            class="animate-spin size-5 stroke-border-strong" />
+                                        <span v-else class="text-text-default">Cancel</span>
                                     </button>
-                                    <h2 class="font-medium">Edit Profile</h2>
+                                    <h2 class="font-medium text-text-default">Edit Profile</h2>
                                     <button @click="submitProfile" :disabled="isSubmittingProfileUpdate">
                                         <Loader2 v-if="isSubmittingProfileUpdate"
-                                            class="size-5 animate-spin stroke-border-strong" />
-                                        <span v-else>Done</span>
+                                            class="animate-spin size-5 stroke-border-strong" />
+                                        <span v-else class="text-text-default">Done</span>
                                     </button>
                                 </div>
 
                                 <!-- Default Content Options -->
                                 <button
-                                    class="flex flex-col gap-1 text-start cursor-pointer border-b border-b-border-muted md:pb-0 pb-3 md:border-b-0"
-                                    @click="setActiveComponent('bio')">
-                                    <h1 class="font-medium">Bio</h1>
-                                    <div class="flex items-center justify-between gap-1">
+                                    class="flex flex-col gap-1 pb-3 border-b cursor-pointer text-start border-b-border-muted md:pb-0 md:border-b-0"
+                                    @click="navigateToBio">
+                                    <h1 class="font-medium text-text-default">Bio</h1>
+                                    <div class="flex gap-1 justify-between items-center">
                                         <p class="text-sm whitespace-pre-wrap break-all"
                                             :class="[bioDisplay ? 'text-text-default' : 'text-text-muted']">
                                             {{ bioDisplay || "Add a bio" }}</p>
@@ -46,18 +46,17 @@
                             </div>
 
                             <!-- Footer -->
-                            <div class="hidden md:block mt-auto">
+                            <div class="hidden mt-auto md:block">
                                 <div class="w-full h-px border-b border-b-border-muted"></div>
                                 <div class="p-5">
                                     <button @click="submitProfile" :disabled="isSubmittingProfileUpdate"
-                                        class="w-full h-12 rounded-xl transition-all transform bg-solid-primary disabled:bg-surface-hover 
-                                        disabled:text-text-disabled flex justify-center disabled:cursor-not-allowed text-bg-primary hover:bg-solid-hover active:scale-95">
-                                        <div class="flex items-center gap-2">
+                                        class="flex justify-center w-full h-12 rounded-xl transition-all transform bg-solid-primary disabled:bg-surface-hover disabled:text-text-disabled disabled:cursor-not-allowed text-bg-primary hover:bg-solid-hover active:scale-95">
+                                        <div class="flex gap-2 items-center">
                                             <span v-if="!isSubmittingProfileUpdate">Done</span>
                                             <template v-else>
-                                                <div class="flex items-center gap-3">
+                                                <div class="flex gap-3 items-center">
                                                     <span>Updating...</span>
-                                                    <Loader2 class="size-5 animate-spin stroke-border-strong" />
+                                                    <Loader2 class="animate-spin size-5 stroke-border-strong" />
                                                 </div>
                                             </template>
                                         </div>
@@ -66,11 +65,11 @@
                             </div>
                         </div>
                         <EditProfileHeader v-else-if="getActiveComponent('bio')" key="bio" headerLabel="Bio"
-                            :fn="fillBio" @set-active-component="setActiveComponent"
-                            class="w-full p-5 h-full md:h-auto">
+                            :fn="navigateFromBio" @set-active-component="setActiveComponent"
+                            class="p-5 w-full h-full md:h-auto">
                             <textarea name="bio" id="bio" v-model="bioInput" placeholder="A few words about you..."
-                                class="p-2 h-32 rounded-md border transition-colors w-full resize-none border-border-muted focus:border-border-strong focus:outline-none"></textarea>
-                            <p class="text-xs text-text-muted mt-1">{{ bioInput.length }}/100</p>
+                                class="p-2 w-full h-32 rounded-md border transition-colors resize-none placeholder:text-text-muted text-text-default border-border-muted focus:border-border-strong focus:outline-none"></textarea>
+                            <p class="mt-1 text-xs text-text-muted">{{ bioInput.length }}/100</p>
                         </EditProfileHeader>
                     </Transition>
                 </div>
@@ -124,9 +123,14 @@
         originalBio.value = bio
     }, { immediate: true })
 
-    const fillBio = () => {
-        setActiveComponent('default')
+    const navigateToBio = () => {
+        bioInput.value = bioDisplay.value
+        setActiveComponent('bio')
+    }
+
+    const navigateFromBio = () => {
         bioDisplay.value = bioInput.value.trim()
+        setActiveComponent('default')
     }
 
     const MAX_BIO_LENGTH = 100 // 100 characters from backend rule I made
@@ -141,8 +145,10 @@
 
         isSubmittingProfileUpdate.value = true
         try {
+
             const trimmedBio = bioInput.value.trim() || ""
             if (trimmedBio !== originalBio.value) {
+                console.log("trimmed bio", trimmedBio, "original bio", originalBio.value)
                 await props.onSubmit({ bio: trimmedBio })
             }
             closeModal()
