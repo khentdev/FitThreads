@@ -148,7 +148,6 @@
 
             const trimmedBio = bioInput.value.trim() || ""
             if (trimmedBio !== originalBio.value) {
-                console.log("trimmed bio", trimmedBio, "original bio", originalBio.value)
                 await props.onSubmit({ bio: trimmedBio })
             }
             closeModal()

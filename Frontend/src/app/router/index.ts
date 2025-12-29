@@ -1,7 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { featureRoutes } from '../../features/routes'
-import NotFoundView from '../../views/NotFoundView.vue'
 import { useAuthStore } from '../../features/auth/store/authStore'
 
 
@@ -10,7 +9,12 @@ const routes: RouteRecordRaw[] = [
     {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
-        component: NotFoundView,
+        component: () => import("../../views/NotFoundView.vue"),
+        beforeEnter: (_, __, next) => {
+            const authStore = useAuthStore()
+            if (authStore.hasAuthenticated) return next()
+            return next({ name: "login" })
+        }
     },
 ]
 
