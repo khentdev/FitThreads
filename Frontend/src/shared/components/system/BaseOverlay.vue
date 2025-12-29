@@ -1,6 +1,6 @@
 <template>
     <SessionRefreshOverlay v-if="authStore.states.isRefreshingSession" />
-    <SessionRefreshErrorOverlay v-else-if="authStore.systemErrors.sessionError" />
+    <SessionRefreshErrorOverlay v-else-if="authStore.systemErrors.sessionError " />
     <slot v-else></slot>
 </template>
 <script setup lang="ts">

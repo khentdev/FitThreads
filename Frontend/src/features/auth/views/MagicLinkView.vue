@@ -14,7 +14,7 @@
                         <mail class="absolute left-4 size-6 stroke-text-muted" />
                         <input type="email" placeholder="Email" required v-model="email"
                             :disabled="authStore.states.isSendingMagicLink || remainingSeconds > 0"
-                            class="pr-6 pl-12 w-full h-14 rounded-lg border shadow transition-colors border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:bg-surface-hover disabled:cursor-not-allowed" />
+                            class="pr-6 pl-12 w-full h-14 rounded-lg border shadow transition-colors placeholder:text-text-muted text-text-default border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus disabled:bg-surface-hover disabled:cursor-not-allowed" />
                     </div>
                     <div v-if="authStore.errors.emailError || authStore.errors.formError"
                         class="flex gap-2 items-center text-sm text-red-500">
@@ -41,7 +41,7 @@
 
     <section v-else class="flex justify-center items-center p-4 min-h-screen bg-surface-app">
         <div class="flex flex-col gap-6 items-center p-10 rounded-lg shadow-md bg-surface-card">
-            <loader-circle class="size-16 animate-spin stroke-solid-primary" />
+            <loader-circle class="animate-spin size-16 stroke-solid-primary" />
             <div class="flex flex-col gap-2 items-center text-center">
                 <h2 class="text-2xl font-bold text-text-default">Verifying your magic link</h2>
                 <p class="text-text-muted">Please wait while we log you in...</p>

@@ -1,5 +1,5 @@
 <template>
-    <div class="p-5 rounded-xl  bg-surface-app">
+    <div class="p-5 rounded-xl bg-surface-app">
         <div class="flex justify-between items-start mb-4">
             <div class="flex flex-col gap-1">
                 <h1 class="text-2xl font-bold text-text-default">@{{ profile?.username }}</h1>
@@ -23,7 +23,7 @@
     import type { UserProfile } from '../types';
     import { formatCompactNumber } from '../../../shared/utils/numberUtils';
 
-    const props = defineProps<{ profile: UserProfile | undefined }>()
+    defineProps<{ profile: UserProfile | undefined }>()
 
     const formatDate = (dateStr: string | undefined) => {
         if (!dateStr) return '';

@@ -11,7 +11,7 @@
                     <div class="flex relative items-center w-full">
                         <mail class="absolute left-4 size-6 stroke-text-muted" />
                         <input type="username" placeholder="Username" required v-model="username"
-                            class="pr-6 pl-12 w-full h-14 rounded-lg border shadow transition-colors border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus" />
+                            class="pr-6 pl-12 w-full h-14 rounded-lg border shadow transition-colors placeholder:text-text-muted text-text-default border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus" />
                     </div>
                     <div v-if="authStore.errors.usernameError || authStore.errors.formError"
                         class="flex gap-2 items-center text-sm text-red-500">
@@ -25,7 +25,7 @@
                     <div class="flex relative items-center w-full">
                         <lock class="absolute left-4 size-6 stroke-text-muted" />
                         <input type="password" placeholder="Password" minlength="6" required v-model="password"
-                            class="pr-6 pl-12 w-full h-14 rounded-lg border shadow transition-colors border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus" />
+                            class="pr-6 pl-12 w-full h-14 rounded-lg border shadow transition-colors placeholder:text-text-muted text-text-default border-surface-elevated focus:border-border-focus focus:outline-none focus:ring-1 focus:ring-border-focus" />
                     </div>
                     <div v-if="authStore.errors.passwordError" class="flex gap-2 items-center text-sm text-red-500">
                         <circle-alert class="self-start size-5 shrink-0" />

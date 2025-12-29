@@ -25,7 +25,7 @@
                         class="flex justify-center items-center w-16 h-12 rounded-xl transition-colors group hover:bg-surface-elevated"
                         :class="[
                             isExactActive ? 'text-text-default' : 'text-text-muted',
-                        ]" :aria-label="link.label" @click.prevent="navigate">
+                        ]" :aria-label="link.label" @click.prevent="handleNavigate(link, navigate)">
                         <component :is="link.icon" class="transition-all duration-200 size-7" :class="[
                             isExactActive ? 'text-text-default stroke-3' : 'text-text-muted group-hover:text-text-default group-hover:stroke-3'
                         ]" />
