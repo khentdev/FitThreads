@@ -199,7 +199,7 @@ export const sendMagicLinkService = async (email: string, user: User) => {
     const redisKey = RedisKeys.magicLink(token);
 
     try {
-        await redis.setex(redisKey, env.OTP_EXPIRY_SECONDS, email)
+        await redis.setex(redisKey, env.MAGIC_LINK_EXPIRES_IN, email)
         logger.info({ email, redisKey }, "OTP stored in Redis with user email");
     } catch (err) {
         logger.error({ error: err, email }, "Failed to send magic link");
