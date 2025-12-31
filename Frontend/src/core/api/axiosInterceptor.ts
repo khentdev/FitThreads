@@ -12,10 +12,14 @@ import { axiosInstance } from './axiosConfig'
 const onRequest = async (
     config: InternalAxiosRequestConfig
 ) => {
+    const isProd = import.meta.env.PROD
+
     const authStore = useAuthStore()
-    config.headers["X-Fingerprint"] = await getFingerprint()
-    config.headers["X-CSRF-Token"] = getCookie("csrfToken")
     config.headers["Authorization"] = `Bearer ${authStore.getAccessToken}`
+    config.headers["X-Fingerprint"] = await getFingerprint()
+
+    const csrfTokenName = isProd ? "__Secure-csrfToken" : "csrfToken"
+    config.headers["X-CSRF-Token"] = getCookie(csrfTokenName)
     return config
 }
 const onRequestError = (error: AxiosError) => {
