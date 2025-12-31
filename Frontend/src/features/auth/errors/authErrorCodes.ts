@@ -45,6 +45,9 @@ export const AUTH_USERNAME_ALREADY_TAKEN = "AUTH_USERNAME_ALREADY_TAKEN"
 export const AUTH_USER_ALREADY_EXISTS = "AUTH_USER_ALREADY_EXISTS"
 export const AUTH_USER_ALREADY_VERIFIED = "AUTH_USER_ALREADY_VERIFIED"
 
+// Rate Limit Errors
+export const AUTH_RATE_LIMIT_SIGNUP = "AUTH_RATE_LIMIT_SIGNUP"
+
 // Infrastructure errors (from service)
 export const AUTH_ACCOUNT_CREATION_FAILED = "AUTH_ACCOUNT_CREATION_FAILED"
 
@@ -61,6 +64,7 @@ export type SignupErrorCode =
     | typeof AUTH_USER_ALREADY_VERIFIED
     | typeof AUTH_ACCOUNT_CREATION_FAILED
     | typeof AUTH_OTP_SEND_FAILED
+    | typeof AUTH_RATE_LIMIT_SIGNUP
 
 // ============================================
 // OTP VERIFICATION ERROR CODES

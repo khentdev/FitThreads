@@ -41,6 +41,10 @@ export const env = {
     RATELIMIT_LOGIN_USERNAME_MAX: 10,
     RATELIMIT_LOGIN_USERNAME_WINDOW: 3600, // 1 hour
 
+    // Auth - Signup
+    RATELIMIT_SIGNUP_IP_MAX: 5,
+    RATELIMIT_SIGNUP_IP_WINDOW: 3600, // 1 hour
+
     // Email (Resend)
     RESEND_API_KEY: loadEnv("RESEND_API_KEY"),
     EMAIL_FROM: loadEnv("EMAIL_FROM", "FitThreads <noreply@fitthreads.com>"),

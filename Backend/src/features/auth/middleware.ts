@@ -16,6 +16,7 @@ import { env } from "../../configs/env.js";
 
 export const validateSendOTP = async (c: Context, next: Next) => {
     const { username, email, password } = await c.req.json<SendOTPRequestBody>();
+    const clientIp = getClientIp(c)
 
     if (!notEmpty(username))
         throw new AppError("AUTH_USERNAME_REQUIRED", { field: "username" });
@@ -29,6 +30,15 @@ export const validateSendOTP = async (c: Context, next: Next) => {
     if (!isMinLength(password, 8))
         throw new AppError("AUTH_PASSWORD_MIN_LENGTH", { field: "password" });
 
+    await enforceRateLimit(c, {
+        endpoint: "signup/send-otp",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_SIGNUP",
+        maxRequests: env.RATELIMIT_SIGNUP_IP_MAX,
+        timeWindow: `${env.RATELIMIT_SIGNUP_IP_WINDOW} s`
+    })
+    
     const payload = {
         username: (username as string).trim().toLowerCase(),
         email: (email as string).trim().toLowerCase(),
