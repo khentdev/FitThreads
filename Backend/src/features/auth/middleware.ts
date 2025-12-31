@@ -38,7 +38,7 @@ export const validateSendOTP = async (c: Context, next: Next) => {
         maxRequests: env.RATELIMIT_SIGNUP_IP_MAX,
         timeWindow: `${env.RATELIMIT_SIGNUP_IP_WINDOW} s`
     })
-    
+
     const payload = {
         username: (username as string).trim().toLowerCase(),
         email: (email as string).trim().toLowerCase(),
@@ -130,7 +130,28 @@ export const validateResendOTP = async (c: Context, next: Next) => {
 
 export const validateSendMagicLink = async (c: Context, next: Next) => {
     const { email } = await c.req.json<{ email: unknown }>()
+    const clientIp = getClientIp(c)
+
     if (!isValidEmail(email)) throw new AppError("AUTH_EMAIL_REQUIRED")
+
+    await enforceRateLimit(c, {
+        endpoint: "magic-link",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_MAGIC_LINK",
+        maxRequests: env.RATELIMIT_MAGIC_LINK_IP_MAX,
+        timeWindow: `${env.RATELIMIT_MAGIC_LINK_IP_WINDOW} s`
+    })
+
+    await enforceRateLimit(c, {
+        endpoint: "magic-link",
+        identifier: email as string,
+        identifierType: "email",
+        errorCode: "AUTH_RATE_LIMIT_MAGIC_LINK",
+        maxRequests: env.RATELIMIT_MAGIC_LINK_EMAIL_MAX,
+        timeWindow: `${env.RATELIMIT_MAGIC_LINK_EMAIL_WINDOW} s`
+    })
+
     const payload = {
         email: (email as string).trim().toLowerCase()
     };

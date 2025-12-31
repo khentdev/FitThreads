@@ -45,6 +45,12 @@ export const env = {
     RATELIMIT_SIGNUP_IP_MAX: 5,
     RATELIMIT_SIGNUP_IP_WINDOW: 3600, // 1 hour
 
+    // Auth - Magiclink
+    RATELIMIT_MAGIC_LINK_IP_MAX: 15,
+    RATELIMIT_MAGIC_LINK_IP_WINDOW: 3600, // 1 hour
+    RATELIMIT_MAGIC_LINK_EMAIL_MAX: 5,
+    RATELIMIT_MAGIC_LINK_EMAIL_WINDOW: 3600, // 1 hour
+
     // Email (Resend)
     RESEND_API_KEY: loadEnv("RESEND_API_KEY"),
     EMAIL_FROM: loadEnv("EMAIL_FROM", "FitThreads <noreply@fitthreads.com>"),
