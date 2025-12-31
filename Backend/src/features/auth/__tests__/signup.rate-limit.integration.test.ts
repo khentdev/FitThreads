@@ -6,7 +6,7 @@ import { AppError } from "../../../errors/customError.js"
 import { enforceRateLimit } from "../../../lib/rateLimit.js"
 
 
-describe("Rate Limit For Login Validation Middleware (validateSendOTP)", () => {
+describe("Rate Limit For Signup Validation Middleware (validateSendOTP)", () => {
     let app: ReturnType<typeof createApp> | null = null
     let redis: ReturnType<typeof getRedisClient> | null = null
 
