@@ -110,9 +110,13 @@ export type ResendOTPErrorCode =
 export const AUTH_SEND_MAGICLINK_FAILED = "AUTH_SEND_MAGICLINK_FAILED"
 export const AUTH_MAGIC_LINK_INVALID_OR_EXPIRED = "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED"
 
+// Rate Limit Errors
+export const AUTH_RATE_LIMIT_MAGIC_LINK = "AUTH_RATE_LIMIT_MAGIC_LINK"
+
 export type SendMagicLinkErrorCode =
     | typeof AUTH_EMAIL_REQUIRED
     | typeof AUTH_USER_NOT_VERIFIED
+    | typeof AUTH_RATE_LIMIT_MAGIC_LINK
     | typeof AUTH_SEND_MAGICLINK_FAILED
 
 export type VerifyMagicLinkErrorCode =

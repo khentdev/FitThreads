@@ -244,6 +244,7 @@ export const useAuthStore = defineStore('auth', () => {
                 return { success: false, verified: false, email: error.response?.data?.error?.data?.['email'] }
             }
             if (code === AUTH_CODES.AUTH_SEND_MAGICLINK_FAILED) errors.formError = message
+            if (code === AUTH_CODES.AUTH_RATE_LIMIT_MAGIC_LINK) errors.formError = message
             return { success: false }
         } finally {
             states.isSendingMagicLink = false
