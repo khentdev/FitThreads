@@ -6,12 +6,11 @@ trigger: always_on
 These limits are **hard constraints**. All endpoints MUST enforce these exact limits using Redis-backed rate limiting with independent keys as specified.
 ## Authentication
 ### Login
-- 5 req / 15 min / IP (independent key: `ratelimit:login:ip:{ip}`)
-- 5 req / hr / email (independent key: `ratelimit:login:email:{email}`)
+- 20 req / 15 min / IP (independent key: `ratelimit:login:ip:{ip}`)
+- 10 req / hr / email (independent key: `ratelimit:login:email:{email}`)
 
 ### Signup
 - 5 req / hr / IP (independent key: `ratelimit:signup:ip:{ip}`)
-- 5 req / hr / email (independent key: `ratelimit:signup:email:{email}`)
 
 ### Magic Link Request
 - 5 req / hr / email (independent key: `ratelimit:magic-link:email:{email}`)
