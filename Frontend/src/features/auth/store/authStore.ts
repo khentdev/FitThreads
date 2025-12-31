@@ -1,13 +1,13 @@
+import type { AxiosError } from 'axios'
 import { defineStore } from 'pinia'
 import { computed, reactive, ref } from 'vue'
-import type { AuthContext, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse } from '../types'
-import { authService } from '../service'
-import { errorHandler } from '../../../core/errors/errorHandler'
-import type { LoginErrorCode, ResendOTPErrorCode, SignupErrorCode, VerifyOTPErrorCode, SendMagicLinkErrorCode, VerifyMagicLinkErrorCode, RefreshSessionErrorCode } from '../errors/authErrorCodes'
-import * as AUTH_CODES from '../errors/authErrorCodes'
-import type { AxiosError } from 'axios'
 import type { ErrorResponse } from '../../../core/errors'
+import { errorHandler } from '../../../core/errors/errorHandler'
 import { useToast } from '../../../shared/composables/toast/useToast'
+import type { LoginErrorCode, RefreshSessionErrorCode, ResendOTPErrorCode, SendMagicLinkErrorCode, SignupErrorCode, VerifyMagicLinkErrorCode, VerifyOTPErrorCode } from '../errors/authErrorCodes'
+import * as AUTH_CODES from '../errors/authErrorCodes'
+import { authService } from '../service'
+import type { AuthContext, AuthRefreshSessionResponse, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyMagicLinkResponse, AuthVerifyOTPResponse } from '../types'
 
 export const useAuthStore = defineStore('auth', () => {
     const { toast } = useToast()
@@ -93,6 +93,8 @@ export const useAuthStore = defineStore('auth', () => {
             if (code === AUTH_CODES.AUTH_USERNAME_REQUIRED) errors.usernameError = message
             if (code === AUTH_CODES.AUTH_USER_NOT_VERIFIED) return { success: false, verified: false, email: error.response?.data?.error?.data?.['email'] }
             if (code === AUTH_CODES.AUTH_INVALID_DEVICE_FINGERPRINT) errors.formError = "Something went wrong on our end. We're on it."
+            if (code === AUTH_CODES.AUTH_RATE_LIMIT_LOGIN) errors.formError = message
+
             const codes = [AUTH_CODES.AUTH_PASSWORD_REQUIRED,
             AUTH_CODES.AUTH_PASSWORD_MIN_LENGTH,
             AUTH_CODES.AUTH_INVALID_CREDENTIALS,
