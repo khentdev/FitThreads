@@ -11,6 +11,7 @@ import type {
     SendOTPRequestBody,
     VerifyEmailAndCreateSessionRequestBody,
 } from "./types.js";
+import { env } from "../../configs/env.js";
 
 
 export const validateSendOTP = async (c: Context, next: Next) => {
@@ -80,8 +81,8 @@ export const validateLoginAccount = async (c: Context, next: Next) => {
         identifier: clientIp,
         identifierType: "ip",
         errorCode: "AUTH_RATE_LIMIT_LOGIN",
-        maxRequests: 20,
-        timeWindow: "15 m"
+        maxRequests: env.RATELIMIT_LOGIN_IP_MAX,
+        timeWindow: `${env.RATELIMIT_LOGIN_IP_WINDOW} s`
     })
 
     await enforceRateLimit(c, {
@@ -89,8 +90,8 @@ export const validateLoginAccount = async (c: Context, next: Next) => {
         identifier: username as string,
         identifierType: "username",
         errorCode: "AUTH_RATE_LIMIT_LOGIN",
-        maxRequests: 10,
-        timeWindow: "1 h"
+        maxRequests: env.RATELIMIT_LOGIN_EMAIL_MAX,
+        timeWindow: `${env.RATELIMIT_LOGIN_EMAIL_WINDOW} s`
     })
 
     const payload = {

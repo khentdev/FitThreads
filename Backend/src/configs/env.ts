@@ -29,8 +29,8 @@ export const env = {
     JWT_SECRET: loadEnv("JWT_SECRET"),
     JWT_ISSUER: loadEnv("JWT_ISSUER", "fitthreads-api"),
 
-    FRONTEND_URL: loadEnv("FRONTEND_URL"), // Prod
-    FRONTEND_DEV_URL: loadEnv("FRONTEND_DEV_URL"),
+    FRONTEND_URL: loadEnv("FRONTEND_URL", "http://localhost:4173"), // Prod
+    FRONTEND_DEV_URL: loadEnv("FRONTEND_DEV_URL", "http://localhost:5173"),
 
     MAGIC_LINK_EXPIRES_IN: parseInt(loadEnv("MAGIC_LINK_EXPIRES_IN", "600"), 10),
 
