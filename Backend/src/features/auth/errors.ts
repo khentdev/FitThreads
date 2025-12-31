@@ -13,6 +13,7 @@ export const AUTH_ERROR_CODES = {
 
     // Rate Limit Errors
     AUTH_RATE_LIMIT_LOGIN: "AUTH_RATE_LIMIT_LOGIN",
+    AUTH_RATE_LIMIT_SIGNUP: "AUTH_RATE_LIMIT_SIGNUP",
 
     // Service Layer - Business Logic Errors
     AUTH_USERNAME_ALREADY_TAKEN: "AUTH_USERNAME_ALREADY_TAKEN",
@@ -76,9 +77,14 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
 
     //Rate Limit Errors
     AUTH_RATE_LIMIT_LOGIN: {
-        code: "AUTH_RATE_LIMIT_LOGIN", 
+        code: "AUTH_RATE_LIMIT_LOGIN",
         status: 429,
-         message: "Something went wrong on our end. Please try again later."
+        message: "Something went wrong on our end. Please try again later."
+    },
+    AUTH_RATE_LIMIT_SIGNUP: {
+        code:"AUTH_RATE_LIMIT_SIGNUP",
+        status: 429,
+        message: "Something went wrong on our end. Please try again later."
     },
 
     // Service Layer - Business Logic Errors
