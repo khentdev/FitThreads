@@ -1,6 +1,7 @@
+import { type Duration, Ratelimit } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
-import { env } from "./env.js";
 import logger from "../lib/logger.js";
+import { env } from "./env.js";
 
 let redisClient: Redis | null = null;
 export function getRedisClient(): Redis {
@@ -19,4 +20,14 @@ export function getRedisClient(): Redis {
     return redisClient;
 }
 
-
+export type RateLimitParams = {
+    maxRequests: number,
+    timeWindow: Duration,
+}
+export function rateLimit({ maxRequests, timeWindow }: RateLimitParams): Ratelimit {
+    return new Ratelimit({
+        redis: getRedisClient(),
+        limiter: Ratelimit.slidingWindow(maxRequests, timeWindow),
+        analytics: true,
+    });
+}

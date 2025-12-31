@@ -13,6 +13,9 @@ export const AUTH_INVALID_DEVICE_FINGERPRINT = "AUTH_INVALID_DEVICE_FINGERPRINT"
 export const AUTH_INVALID_CREDENTIALS = "AUTH_INVALID_CREDENTIALS"
 export const AUTH_USER_NOT_VERIFIED = "AUTH_USER_NOT_VERIFIED"
 
+// Rate Limit Errors
+export const AUTH_RATE_LIMIT_LOGIN = "AUTH_RATE_LIMIT_LOGIN"
+
 // Infrastructure errors (from service)
 export const AUTH_LOGIN_FAILED = "AUTH_LOGIN_FAILED"
 export const AUTH_OTP_SEND_FAILED = "AUTH_OTP_SEND_FAILED"
@@ -26,6 +29,7 @@ export type LoginErrorCode =
     | typeof AUTH_USER_NOT_VERIFIED
     | typeof AUTH_LOGIN_FAILED
     | typeof AUTH_OTP_SEND_FAILED
+    | typeof AUTH_RATE_LIMIT_LOGIN
 
 // ============================================
 // SIGNUP ERROR CODES

@@ -1,13 +1,15 @@
 import { Context, Next } from "hono";
 import { AppError } from "../../errors/customError.js";
-import { notEmpty, isValidEmail, isMinLength, isValidDeviceFingerprint, isValidUsername } from "../../lib/validation.js";
+import { getClientIp } from '../../lib/extractIp.js';
 import { hashData } from "../../lib/hash.js";
 import { isValidOTPFormat } from "../../lib/otp.js";
+import { enforceRateLimit } from "../../lib/rateLimit.js";
+import { isMinLength, isValidDeviceFingerprint, isValidEmail, isValidUsername, notEmpty } from "../../lib/validation.js";
 import type {
     LoginRequestBody,
+    ResendOTPRequestBody,
     SendOTPRequestBody,
     VerifyEmailAndCreateSessionRequestBody,
-    ResendOTPRequestBody,
 } from "./types.js";
 
 
@@ -59,6 +61,7 @@ export const validateVerifyOTPAndCreateAccount = async (c: Context, next: Next) 
 export const validateLoginAccount = async (c: Context, next: Next) => {
     const { username, password } = await c.req.json<LoginRequestBody>();
     const fingerprint = c.req.header("X-Fingerprint");
+    const clientIp = getClientIp(c)
 
     if (!notEmpty(username))
         throw new AppError("AUTH_USERNAME_REQUIRED", { field: "username" });
@@ -71,6 +74,24 @@ export const validateLoginAccount = async (c: Context, next: Next) => {
 
     if (!isValidDeviceFingerprint(fingerprint))
         throw new AppError("AUTH_INVALID_DEVICE_FINGERPRINT", { field: "device_fingerprint" });
+
+    await enforceRateLimit(c, {
+        endpoint: "login",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_LOGIN",
+        maxRequests: 20,
+        timeWindow: "15 m"
+    })
+
+    await enforceRateLimit(c, {
+        endpoint: "login",
+        identifier: username as string,
+        identifierType: "username",
+        errorCode: "AUTH_RATE_LIMIT_LOGIN",
+        maxRequests: 10,
+        timeWindow: "1 h"
+    })
 
     const payload = {
         username: (username as string).trim().toLowerCase(),
