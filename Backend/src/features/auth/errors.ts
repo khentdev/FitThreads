@@ -11,6 +11,9 @@ export const AUTH_ERROR_CODES = {
     AUTH_OTP_INVALID_FORMAT: "AUTH_OTP_INVALID_FORMAT",
     AUTH_INVALID_DEVICE_FINGERPRINT: "AUTH_INVALID_DEVICE_FINGERPRINT",
 
+    // Rate Limit Errors
+    AUTH_RATE_LIMIT_LOGIN: "AUTH_RATE_LIMIT_LOGIN",
+
     // Service Layer - Business Logic Errors
     AUTH_USERNAME_ALREADY_TAKEN: "AUTH_USERNAME_ALREADY_TAKEN",
     AUTH_USER_ALREADY_EXISTS: "AUTH_USER_ALREADY_EXISTS",
@@ -69,6 +72,13 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
         code: "AUTH_INVALID_DEVICE_FINGERPRINT",
         status: 400,
         message: "Unable to verify your device. Please refresh the page and try again.",
+    },
+
+    //Rate Limit Errors
+    AUTH_RATE_LIMIT_LOGIN: {
+        code: "AUTH_RATE_LIMIT_LOGIN", 
+        status: 429,
+         message: "Something went wrong on our end. Please try again later."
     },
 
     // Service Layer - Business Logic Errors
