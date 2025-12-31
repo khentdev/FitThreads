@@ -1,4 +1,3 @@
-import { FeedCursor } from "./utils/cursor.js"
 
 export type CreatePostParams = {
     authorId: string,
