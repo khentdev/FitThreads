@@ -142,6 +142,7 @@ export const useAuthStore = defineStore('auth', () => {
             if (code === AUTH_CODES.AUTH_USER_ALREADY_VERIFIED) errors.formError = message
             if (code === AUTH_CODES.AUTH_ACCOUNT_CREATION_FAILED) errors.formError = message
             if (code === AUTH_CODES.AUTH_OTP_SEND_FAILED) errors.formError = message
+            if (code === AUTH_CODES.AUTH_RATE_LIMIT_SIGNUP) errors.formError = message
 
             return { success: false, email: null }
         } finally {
