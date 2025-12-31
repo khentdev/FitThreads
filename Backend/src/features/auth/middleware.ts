@@ -90,8 +90,8 @@ export const validateLoginAccount = async (c: Context, next: Next) => {
         identifier: username as string,
         identifierType: "username",
         errorCode: "AUTH_RATE_LIMIT_LOGIN",
-        maxRequests: env.RATELIMIT_LOGIN_EMAIL_MAX,
-        timeWindow: `${env.RATELIMIT_LOGIN_EMAIL_WINDOW} s`
+        maxRequests: env.RATELIMIT_LOGIN_USERNAME_MAX,
+        timeWindow: `${env.RATELIMIT_LOGIN_USERNAME_WINDOW} s`
     })
 
     const payload = {
