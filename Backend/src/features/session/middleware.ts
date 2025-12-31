@@ -7,17 +7,20 @@ import { verifyTokenOrThrow } from "./tokens.js"
 import { prisma } from "../../../prisma/prismaConfig.js"
 import { AppError } from "../../errors/customError.js"
 import { SessionPayloadParams } from "./types.js"
+import logger from "../../lib/logger.js"
 
 export const validateSession = async (c: Context, next: Next) => {
     const isProd = env.NODE_ENV === "production"
     const cookieName = isProd ? "__Secure-sid" : "sid"
-    const sessionCookie = getCookieValue(c, `${cookieName}`)
-    const csrfTokenFromCookie = getCookieValue(c, "csrfToken")
+    const sessionCookie = getCookieValue(c, cookieName)
+
+    const csrfTokenName = isProd ? "__Secure-csrfToken" : "csrfToken"
+    const csrfTokenFromCookie = getCookieValue(c, csrfTokenName)
     const csrfTokenFromHeader = c.req.header("X-CSRF-Token")
     const fingerprint = c.req.header("X-Fingerprint")
 
     const Unauthorized = (reason: string, field: string): AppError => {
-        console.warn(`[Session] Validation failed: ${reason}`)
+        logger.warn({ reason }, "Session Validation Failed.")
         return new AppError("SESSION_UNAUTHORIZED", { field })
     }
 
