@@ -142,7 +142,7 @@ export const validateResendOTP = async (c: Context, next: Next) => {
 
     await enforceRateLimit(c, {
         endpoint: "verify/resend-otp",
-        identifier: email,
+        identifier: email as string,
         identifierType: "email",
         errorCode: "AUTH_RATE_LIMIT_RESEND_OTP",
         maxRequests: env.RATELIMIT_RESEND_OTP_EMAIL_MAX,
