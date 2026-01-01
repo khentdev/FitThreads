@@ -126,9 +126,28 @@ export const validateLoginAccount = async (c: Context, next: Next) => {
 
 export const validateResendOTP = async (c: Context, next: Next) => {
     const { email } = await c.req.json<ResendOTPRequestBody>();
+    const clientIp = getClientIp(c)
 
     if (!isValidEmail(email))
         throw new AppError("AUTH_EMAIL_REQUIRED", { field: "email" });
+
+    await enforceRateLimit(c, {
+        endpoint: "verify/resend-otp",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_RESEND_OTP",
+        maxRequests: env.RATELIMIT_RESEND_OTP_IP_MAX,
+        timeWindow: `${env.RATELIMIT_RESEND_OTP_IP_WINDOW} s`
+    })
+
+    await enforceRateLimit(c, {
+        endpoint: "verify/resend-otp",
+        identifier: email,
+        identifierType: "email",
+        errorCode: "AUTH_RATE_LIMIT_RESEND_OTP",
+        maxRequests: env.RATELIMIT_RESEND_OTP_EMAIL_MAX,
+        timeWindow: `${env.RATELIMIT_RESEND_OTP_EMAIL_WINDOW} s`
+    })
 
     const payload = {
         email: (email as string).trim().toLowerCase()
