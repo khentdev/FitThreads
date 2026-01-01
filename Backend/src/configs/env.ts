@@ -45,6 +45,10 @@ export const env = {
     RATELIMIT_SIGNUP_IP_MAX: 5,
     RATELIMIT_SIGNUP_IP_WINDOW: 3600, // 1 hour
 
+    // Auth - Verify OTP
+    RATELIMIT_SIGNUP_VERIFY_OTP_IP_MAX: 10,
+    RATELIMIT_SIGNUP_VERIFY_OTP_IP_WINDOW: 600, // 10 minutes
+
     // Auth - Magiclink
     RATELIMIT_MAGIC_LINK_IP_MAX: 15,
     RATELIMIT_MAGIC_LINK_IP_WINDOW: 3600, // 1 hour
