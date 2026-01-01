@@ -53,12 +53,22 @@ export const validateSendOTP = async (c: Context, next: Next) => {
 export const validateVerifyOTPAndCreateAccount = async (c: Context, next: Next) => {
     const { otp } = await c.req.json<VerifyEmailAndCreateSessionRequestBody>();
     const fingerprint = c.req.header("X-Fingerprint");
+    const clientIp = getClientIp(c)
 
     if (!isValidOTPFormat(otp, 6))
         throw new AppError("AUTH_OTP_INVALID_FORMAT", { field: "otp" });
 
     if (!isValidDeviceFingerprint(fingerprint))
         throw new AppError("AUTH_INVALID_DEVICE_FINGERPRINT", { field: "device_fingerprint" });
+
+    await enforceRateLimit(c, {
+        endpoint: "signup/verify-otp",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP",
+        maxRequests: env.RATELIMIT_SIGNUP_VERIFY_OTP_IP_MAX,
+        timeWindow: `${env.RATELIMIT_SIGNUP_VERIFY_OTP_IP_WINDOW} s`
+    })
 
     const payload = {
         otp: (otp as string).trim(),
