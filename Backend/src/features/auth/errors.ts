@@ -16,6 +16,7 @@ export const AUTH_ERROR_CODES = {
     AUTH_RATE_LIMIT_SIGNUP: "AUTH_RATE_LIMIT_SIGNUP",
     AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP: "AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP",
     AUTH_RATE_LIMIT_MAGIC_LINK: "AUTH_RATE_LIMIT_MAGIC_LINK",
+    AUTH_RATE_LIMIT_RESEND_OTP: "AUTH_RATE_LIMIT_RESEND_OTP",
 
     // Service Layer - Business Logic Errors
     AUTH_USERNAME_ALREADY_TAKEN: "AUTH_USERNAME_ALREADY_TAKEN",
@@ -91,12 +92,17 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
     AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP: {
         code: "AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP",
         status: 429,
-        message: "You've tried to verify your code too many times. Please wait a moment and try again."
+        message: "Too many verification attempts. Please try again later."
     },
     AUTH_RATE_LIMIT_MAGIC_LINK: {
         code: "AUTH_RATE_LIMIT_MAGIC_LINK",
         status: 429,
         message: "Something went wrong on our end. Please try again later."
+    },
+    AUTH_RATE_LIMIT_RESEND_OTP: {
+        code: "AUTH_RATE_LIMIT_RESEND_OTP",
+        status: 429,
+        message: "Too many code requests. Please try again later."
     },
 
     // Service Layer - Business Logic Errors

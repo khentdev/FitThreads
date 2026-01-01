@@ -25,7 +25,6 @@ These limits are **hard constraints**. All endpoints MUST enforce these exact li
 ### Resend OTP
 - 3 resends / hr / email (independent key: `ratelimit:resend-otp:email:{email}`)
 - 10 resends / hr / IP (independent key: `ratelimit:resend-otp:ip:{ip}`)
-- 60s global cooldown after each successful resend (key: `cooldown:resend-otp:{email}`)
 
 ## Feed
 ### Create Post
