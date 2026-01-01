@@ -177,6 +177,7 @@ export const useAuthStore = defineStore('auth', () => {
                 toast.info("Your account is already verified. Please log in.", { title: "Already verified" })
                 return { success: false, redirect: "login" }
             }
+            if (code === AUTH_CODES.AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP) errors.formError = message
             if (code === AUTH_CODES.AUTH_ACCOUNT_CREATION_FAILED || code === AUTH_CODES.AUTH_INVALID_DEVICE_FINGERPRINT) {
                 toast.error("Something went wrong. Please try again.", { title: "Something went wrong" })
                 return { success: false, redirect: "signup" }
