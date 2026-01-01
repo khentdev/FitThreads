@@ -77,6 +77,9 @@ export const AUTH_OTP_INVALID_FORMAT = "AUTH_OTP_INVALID_FORMAT"
 export const AUTH_OTP_INVALID_OR_EXPIRED = "AUTH_OTP_INVALID_OR_EXPIRED"
 export const AUTH_USER_NOT_FOUND = "AUTH_USER_NOT_FOUND"
 
+// Rate Limit Errors
+export const AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP = "AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP"
+
 export type VerifyOTPErrorCode =
     | typeof AUTH_OTP_INVALID_FORMAT
     | typeof AUTH_INVALID_DEVICE_FINGERPRINT
@@ -84,6 +87,7 @@ export type VerifyOTPErrorCode =
     | typeof AUTH_USER_NOT_FOUND
     | typeof AUTH_USER_ALREADY_VERIFIED
     | typeof AUTH_ACCOUNT_CREATION_FAILED
+    | typeof AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP
 
 // ============================================
 // RESEND OTP ERROR CODES
