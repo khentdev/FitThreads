@@ -216,6 +216,8 @@ export const useAuthStore = defineStore('auth', () => {
                 return { success: false, redirect: "login" }
             }
             if (code === AUTH_CODES.AUTH_OTP_SEND_FAILED) errors.formError = message
+            if (code === AUTH_CODES.AUTH_RATE_LIMIT_RESEND_OTP) errors.formError = message
+            
             return { success: false, redirect: null }
         } finally {
             states.isResendingOTP = false
