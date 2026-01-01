@@ -100,11 +100,15 @@ export type VerifyOTPErrorCode =
 // Uses AUTH_USER_NOT_FOUND from Verify OTP
 // Uses AUTH_USER_ALREADY_VERIFIED from Signup
 
+// Rate Limit Errors
+export const AUTH_RATE_LIMIT_RESEND_OTP = "AUTH_RATE_LIMIT_RESEND_OTP"
+
 export type ResendOTPErrorCode =
     | typeof AUTH_EMAIL_REQUIRED
     | typeof AUTH_USER_NOT_FOUND
     | typeof AUTH_USER_ALREADY_VERIFIED
     | typeof AUTH_OTP_SEND_FAILED
+    | typeof AUTH_RATE_LIMIT_RESEND_OTP
 
 // ============================================
 // MAGIC LINK ERROR CODES
