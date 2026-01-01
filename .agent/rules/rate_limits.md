@@ -29,14 +29,15 @@ These limits are **hard constraints**. All endpoints MUST enforce these exact li
 ## Feed
 ### Create Post
 - 6 posts / 2 hr / user (independent key: `ratelimit:create-post:user:{userId}`)
-- 2 posts / 10 min / IP (independent key: `ratelimit:create-post:ip:{ip}`)
+- 12 posts / 10 min / IP (independent key: `ratelimit:create-post:ip:{ip}`)
 
 ### Like / Favorite
 - 60 actions / min / user (combined for both, key: `ratelimit:like-fav:user:{userId}`)
 
 ### Search
 - 30 req / min / IP (independent key: `ratelimit:search:ip:{ip}`)
-- 100 req / min / user (optional, authenticated only, key: `ratelimit:search:user:{userId}`)
+- 100 req / min / user (authenticated only, key: `ratelimit:search:user:{userId}`)
+- 120 req / min / IP (authenticated, key: `ratelimit:search:ip:{ip}`)
 
 ### Read Endpoints (Feed, Profile, Single Post)
 - 120 req / min / IP (independent key: `ratelimit:read:ip:{ip}`)
