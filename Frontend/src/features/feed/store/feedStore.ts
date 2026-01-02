@@ -9,6 +9,7 @@ import * as FEED_ERROR_CODES from '../errors/FeedErrorCodes'
 import { feedService } from '../service'
 import type { CreatePostParams, GetFavoritePostsResponse, GetFeedWithCursorResponse, ToggleFavoriteParams, ToggleLikeParams } from '../types'
 import { useAuthStore } from '../../auth/store/authStore'
+import { formatRetryTime } from '../../../shared/utils/formatRetryTime'
 
 type ToggleLikeMutationContext = {
     feedCache: { queryKey: unknown[], previousData: InfiniteData<GetFeedWithCursorResponse> | undefined }[],
@@ -30,7 +31,6 @@ export const useFeedStore = defineStore('feed', () => {
     const { toast } = useToast()
     const authStore = useAuthStore()
 
-
     const queryClient = useQueryClient()
     const states = reactive({
         creatingPost: false,
@@ -48,7 +48,7 @@ export const useFeedStore = defineStore('feed', () => {
             return { success: true }
         } catch (err) {
             const error = err as AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>
-            const { type, code, message } = errorHandler(error)
+            const { type, code, message, data } = errorHandler(error)
             const codes = [FEED_ERROR_CODES.TITLE_MIN_LENGTH,
             FEED_ERROR_CODES.CONTENT_MIN_LENGTH,
             FEED_ERROR_CODES.POST_TAG_MIN_LENGTH,
@@ -56,6 +56,12 @@ export const useFeedStore = defineStore('feed', () => {
             FEED_ERROR_CODES.POST_TAGS_LIMIT_EXCEEDED,
             FEED_ERROR_CODES.POST_TAGS_INVALID, FEED_ERROR_CODES.POST_CREATION_FAILED]
             if (code && codes.includes(code)) toast.error(message)
+
+            if (code === "CREATE_POST_IP_RATE_LIMIT_EXCEEDED")
+                toast.error(`Too many posts from your network. Try again in ${formatRetryTime(data?.['retryAfter'] as number)}`)
+
+            if (code === "CREATE_POST_USER_RATE_LIMIT_EXCEEDED")
+                toast.error(`Post limit reached (6 per 2 hours). Try again in ${formatRetryTime(data?.['retryAfter'] as number)}`)
 
             const types: typeof type[] = ["unreachable", "timeout", "offline", "server_error"]
             if (types.includes(type)) toast.error(message)
