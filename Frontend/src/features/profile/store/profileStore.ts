@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
-import { computed, reactive, ref, watchEffect } from 'vue';
+import { computed, reactive, ref, watch, watchEffect } from 'vue';
 import type { ErrorResponse } from '../../../core/errors';
 import { errorHandler } from '../../../core/errors/errorHandler';
 import { useToast } from '../../../shared/composables/toast/useToast';
@@ -24,6 +24,9 @@ export const useProfileStore = defineStore('profile', () => {
     const currentViewedUsername = ref<string | null>(null);
     const setViewedProfile = (username: string) => {
         currentViewedUsername.value = username;
+        errors.profileFetchFailed = false;
+        errors.profileNotFound = false;
+        errors.serverError = false;
     };
     const isOwnProfile = computed(() => currentViewedUsername.value === authStore.getUsername);
     const profileQuery = useQuery({
@@ -36,16 +39,12 @@ export const useProfileStore = defineStore('profile', () => {
     });
 
     const retryFetchProfile = () => {
+        errors.profileFetchFailed = false;
+        errors.profileNotFound = false;
+        errors.serverError = false;
         profileQuery.refetch()
     }
 
-    watchEffect(() => {
-        if (profileQuery.data) {
-            errors.profileFetchFailed = false;
-            errors.profileNotFound = false;
-            errors.serverError = false;
-        }
-    })
 
     watchEffect(() => {
         const error = profileQuery.error.value as AxiosError<ErrorResponse<PROFILE_ERROR_CODES.ProfileErrorCode>>

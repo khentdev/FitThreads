@@ -1,13 +1,13 @@
 <template>
     <div class="flex flex-col gap-4">
-        <PostSkeleton v-if="query.isPending.value" :count="3" />
+        <PostSkeleton v-if="query.isPending.value" :count="5" />
 
         <ErrorRetry v-else-if="query.isError.value"
             message="Something went wrong. Please check your connection and try again."
             :is-retrying="query.isRefetching.value" :retryFn="handleTryAgain" />
 
         <EmptyState v-else-if="allPosts.length === 0" title="No favorites yet"
-            message="This user hasn't favorited any fitness thoughts yet." />
+            :message="isOwnProfile ? 'You haven\'t favorited any fitness thoughts yet.' : 'This user hasn\'t favorited any fitness thoughts yet.'" />
 
         <div v-else class="flex flex-col px-0">
             <div v-for="post in allPosts" :key="post.id"
@@ -93,6 +93,8 @@
     const feedStore = useFeedStore()
     const authStore = useAuthStore()
     const { openModal } = useLoginModal()
+
+    const isOwnProfile = computed(() => authStore.getUsername === username.value)
 
 
     const allPosts = computed(() => {
