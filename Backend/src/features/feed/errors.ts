@@ -15,7 +15,8 @@ export const FEED_ERROR_CODES = {
     POST_TAG_FORMAT_INVALID: "POST_TAG_FORMAT_INVALID",
 
     // Rate Limit Error
-    CREATE_POST_RATE_LIMIT_EXCEEDED: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+    CREATE_POST_IP_RATE_LIMIT_EXCEEDED: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
+    CREATE_POST_USER_RATE_LIMIT_EXCEEDED: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
 
     // Service Layer Error
     POST_CREATION_FAILED: "POST_CREATION_FAILED",
@@ -79,10 +80,15 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
     },
 
     // Rate Limit Error
-    CREATE_POST_RATE_LIMIT_EXCEEDED: {
-        code: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+    CREATE_POST_IP_RATE_LIMIT_EXCEEDED: {
+        code: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
         status: 429,
-        message: "You have exceeded the rate limit for creating posts. Please try again later."
+        message: "Too many posts from your network. Please try again later."
+    },
+    CREATE_POST_USER_RATE_LIMIT_EXCEEDED: {
+        code: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
+        status: 429,
+        message: "Post limit reached. Please try again later."
     },
 
     // Service Layer Error
