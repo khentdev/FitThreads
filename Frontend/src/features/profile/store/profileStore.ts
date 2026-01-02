@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { AxiosError } from 'axios';
 import { defineStore } from 'pinia';
-import { computed, reactive, ref, watch, watchEffect } from 'vue';
+import { computed, reactive, ref, watchEffect } from 'vue';
 import type { ErrorResponse } from '../../../core/errors';
 import { errorHandler } from '../../../core/errors/errorHandler';
 import { useToast } from '../../../shared/composables/toast/useToast';
