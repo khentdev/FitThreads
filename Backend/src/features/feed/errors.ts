@@ -17,6 +17,7 @@ export const FEED_ERROR_CODES = {
     // Rate Limit Error
     CREATE_POST_IP_RATE_LIMIT_EXCEEDED: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
     CREATE_POST_USER_RATE_LIMIT_EXCEEDED: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
+    TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED: "TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED",
 
     // Service Layer Error
     POST_CREATION_FAILED: "POST_CREATION_FAILED",
@@ -89,6 +90,11 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
         status: 429,
         message: "Post limit reached. Please try again later."
+    },
+    TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED: {
+        code: "TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED",
+        status: 429,
+        message: "You're interacting too quickly. Please try again in a moment."
     },
 
     // Service Layer Error
