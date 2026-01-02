@@ -31,9 +31,14 @@ export const enforceRateLimit = async (c: Context, { endpoint, identifier, ident
     c.header(`X-RateLimit-${identifierType}-Limit`, limit.toString())
     c.header(`X-RateLimit-${identifierType}-Reset`, reset.toString())
 
-    const retryAfter = Math.ceil((reset - Date.now()) / 1000).toString()
+    const retryAfter = Math.ceil((reset - Date.now()) / 1000)
     if (!success) {
-        c.header("Retry-After", retryAfter);
-        throw new AppError(errorCode)
+        c.header("Retry-After", retryAfter.toString());
+        throw new AppError(errorCode, {
+            data: {
+                retryAfter,
+                retryAfterMinutes: Math.ceil(retryAfter / 60)
+            }
+        })
     }
 }

@@ -3,6 +3,9 @@ import { CreatePostParamsVariables, CreatePostRequestBody } from "./types.js";
 import { VerifyTokenVariables } from "../../middleware/validateAccessToken.js";
 import { isMinLength, isWithinMaxLength, isWithinLengthRange, notEmpty } from "../../lib/validation.js";
 import { AppError } from "../../errors/customError.js";
+import { enforceRateLimit } from "../../lib/rateLimit.js";
+import { getClientIp } from "../../lib/extractIp.js";
+import { env } from "../../configs/env.js";
 
 const POST_TITLE_MIN = 6;
 const POST_TITLE_MAX = 100;
@@ -17,6 +20,7 @@ const POST_TAG_REGEX = /^[a-zA-Z0-9_-]+$/;
 export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVariables & CreatePostParamsVariables }>, next: Next) => {
     const { user } = c.get("verifyTokenVariables")
     const { title, content, postTags } = await c.req.json<CreatePostRequestBody>()
+    const clientIp = getClientIp(c)
 
     if (!isMinLength(title, POST_TITLE_MIN))
         throw new AppError("TITLE_MIN_LENGTH", { field: "title" })
@@ -46,6 +50,24 @@ export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVa
             throw new AppError("POST_TAG_FORMAT_INVALID", { field: "post_tags" })
 
     }
+ 
+    await enforceRateLimit(c, {
+        endpoint: "feed/create-post",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+        maxRequests: env.RATELIMIT_CREATE_POST_IP_MAX,
+        timeWindow: `${env.RATELIMIT_CREATE_POST_IP_WINDOW} s`
+    })
+
+    await enforceRateLimit(c, {
+        endpoint: "feed/create-post",
+        identifier: user.id,
+        identifierType: "user",
+        errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+        maxRequests: env.RATELIMIT_CREATE_POST_USER_MAX,
+        timeWindow: `${env.RATELIMIT_CREATE_POST_USER_WINDOW} s`
+    })
 
     c.set("createPostParams", {
         authorId: user.id,
