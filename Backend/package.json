@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon --watch src --exec tsx src/server.ts",
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "start": "node dist/src/server.js",
     "test": "dotenv -e .env.test -- npx prisma db push --accept-data-loss && dotenv -e .env.test -- vitest run",
     "db:test:up": "docker compose -f compose.test.yaml up -d",
