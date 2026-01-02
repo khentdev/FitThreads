@@ -1,6 +1,6 @@
 import { Context } from "hono"
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { getRedisClient } from "../../../configs/redis.js"
+import { cleanupTestKeys, getRedisClient } from "../../../configs/redis.js"
 import { createApp } from "../../../createApp.js"
 import { AppError } from "../../../errors/customError.js"
 import { enforceRateLimit } from "../../../lib/rateLimit.js"
@@ -16,11 +16,11 @@ describe("Rate Limit For MagicLink Validation Middleware (validateSendMagicLink)
     })
 
     beforeEach(async () => {
-        await redis?.flushdb()
+        cleanupTestKeys()
     })
 
     afterAll(async () => {
-        await redis?.flushdb()
+        cleanupTestKeys()
     })
 
     const createMockContext = (): Context => {
@@ -115,7 +115,7 @@ describe("Rate Limit For MagicLink Validation Middleware (validateSendMagicLink)
 
         it("should reject requests exceeding rate limit (3rd request)", { timeout: 60000 }, async () => {
             const mockContext = createMockContext()
-            const email = "testuser1@example.com"
+            const email = "testuser2@example.com"
 
             for (let i = 0; i < 2; i++) {
                 await enforceRateLimit(mockContext, {
