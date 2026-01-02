@@ -67,6 +67,10 @@ export const env = {
     RATELIMIT_CREATE_POST_USER_MAX: 6,
     RATELIMIT_CREATE_POST_USER_WINDOW: 7200,
 
+    // Feed - Like/Favorite
+    RATELIMIT_LIKE_FAVORITE_USER_MAX: 60,
+    RATELIMIT_LIKE_FAVORITE_USER_WINDOW: 60,
+
     // Email (Resend)
     RESEND_API_KEY: loadEnv("RESEND_API_KEY"),
     EMAIL_FROM: loadEnv("EMAIL_FROM", "FitThreads <noreply@fitthreads.com>"),

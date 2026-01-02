@@ -77,3 +77,18 @@ export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVa
     })
     await next()
 }
+
+export const rateLimitLikeFavoritePost = async (c: Context<{ Variables: VerifyTokenVariables }>, next: Next) => {
+    const { user } = c.get("verifyTokenVariables")
+
+    await enforceRateLimit(c, {
+        endpoint: "feed/like-favorite-post",
+        identifier: user.id,
+        identifierType: "user",
+        errorCode: "TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED",
+        maxRequests: env.RATELIMIT_LIKE_FAVORITE_USER_MAX,
+        timeWindow: `${env.RATELIMIT_LIKE_FAVORITE_USER_WINDOW} s`
+    })
+
+    await next()
+}

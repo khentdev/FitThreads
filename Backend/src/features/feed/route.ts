@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { verifyToken } from "../../middleware/validateAccessToken.js";
 import { verifyOptionalToken } from "../../middleware/validateOptionalAccessToken.js";
-import { validateCreatingPost } from "./middlewares.js";
+import { rateLimitLikeFavoritePost, validateCreatingPost } from "./middlewares.js";
 import { createPostController, getFeedController, getFavoritedPostsController, toggleLikeController, toggleFavoriteController } from "./controller.js";
 
 const feedRoutes = new Hono().basePath("/feed");
@@ -12,8 +12,8 @@ feedRoutes.get("/favorites", verifyOptionalToken, getFavoritedPostsController)
 feedRoutes
     .use(verifyToken)
     .post("/create-post", validateCreatingPost, createPostController)
-    .post("/:postId/like", toggleLikeController)
-    .post("/:postId/favorite", toggleFavoriteController)
+    .post("/:postId/like", rateLimitLikeFavoritePost, toggleLikeController)
+    .post("/:postId/favorite", rateLimitLikeFavoritePost, toggleFavoriteController)
 
 
 export default feedRoutes;
