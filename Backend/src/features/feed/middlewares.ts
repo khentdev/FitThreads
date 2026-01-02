@@ -50,12 +50,12 @@ export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVa
             throw new AppError("POST_TAG_FORMAT_INVALID", { field: "post_tags" })
 
     }
- 
+
     await enforceRateLimit(c, {
         endpoint: "feed/create-post",
         identifier: clientIp,
         identifierType: "ip",
-        errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+        errorCode: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
         maxRequests: env.RATELIMIT_CREATE_POST_IP_MAX,
         timeWindow: `${env.RATELIMIT_CREATE_POST_IP_WINDOW} s`
     })
@@ -64,7 +64,7 @@ export const validateCreatingPost = async (c: Context<{ Variables: VerifyTokenVa
         endpoint: "feed/create-post",
         identifier: user.id,
         identifierType: "user",
-        errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+        errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
         maxRequests: env.RATELIMIT_CREATE_POST_USER_MAX,
         timeWindow: `${env.RATELIMIT_CREATE_POST_USER_WINDOW} s`
     })
