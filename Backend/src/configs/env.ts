@@ -61,6 +61,12 @@ export const env = {
     RATELIMIT_MAGIC_LINK_EMAIL_MAX: 5,
     RATELIMIT_MAGIC_LINK_EMAIL_WINDOW: 3600, // 1 hour
 
+    // Feed - Create Post
+    RATELIMIT_CREATE_POST_IP_MAX: 12,
+    RATELIMIT_CREATE_POST_IP_WINDOW: 600,
+    RATELIMIT_CREATE_POST_USER_MAX: 6,
+    RATELIMIT_CREATE_POST_USER_WINDOW: 7200,
+
     // Email (Resend)
     RESEND_API_KEY: loadEnv("RESEND_API_KEY"),
     EMAIL_FROM: loadEnv("EMAIL_FROM", "FitThreads <noreply@fitthreads.com>"),

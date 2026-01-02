@@ -14,6 +14,9 @@ export const FEED_ERROR_CODES = {
     POST_TAG_MAX_LENGTH: "POST_TAG_MAX_LENGTH",
     POST_TAG_FORMAT_INVALID: "POST_TAG_FORMAT_INVALID",
 
+    // Rate Limit Error
+    CREATE_POST_RATE_LIMIT_EXCEEDED: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+
     // Service Layer Error
     POST_CREATION_FAILED: "POST_CREATION_FAILED",
 
@@ -73,6 +76,13 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         code: "POST_TAG_FORMAT_INVALID",
         status: 400,
         message: "Tags must contain only letters and numbers."
+    },
+
+    // Rate Limit Error
+    CREATE_POST_RATE_LIMIT_EXCEEDED: {
+        code: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+        status: 429,
+        message: "You have exceeded the rate limit for creating posts. Please try again later."
     },
 
     // Service Layer Error
