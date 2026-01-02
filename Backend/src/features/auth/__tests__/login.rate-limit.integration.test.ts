@@ -1,6 +1,6 @@
 import { Context } from "hono"
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { getRedisClient } from "../../../configs/redis.js"
+import { cleanupTestKeys, getRedisClient } from "../../../configs/redis.js"
 import { createApp } from "../../../createApp.js"
 import { AppError } from "../../../errors/customError.js"
 import { enforceRateLimit } from "../../../lib/rateLimit.js"
@@ -16,11 +16,11 @@ describe("Rate Limit For Login Validation Middleware (validateLoginAccount)", ()
     })
 
     beforeEach(async () => {
-        await redis?.flushdb()
+        cleanupTestKeys()
     })
 
     afterAll(async () => {
-        await redis?.flushdb()
+        cleanupTestKeys()
     })
 
     const createMockContext = (): Context => {

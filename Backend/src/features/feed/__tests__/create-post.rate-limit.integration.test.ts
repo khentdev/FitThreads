@@ -1,6 +1,6 @@
 import { Context } from "hono"
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
-import { getRedisClient } from "../../../configs/redis.js"
+import { cleanupTestKeys, getRedisClient } from "../../../configs/redis.js"
 import { createApp } from "../../../createApp.js"
 import { AppError } from "../../../errors/customError.js"
 import { enforceRateLimit } from "../../../lib/rateLimit.js"
@@ -16,11 +16,11 @@ describe("Rate Limit For Create Post", () => {
     })
 
     beforeEach(async () => {
-        await redis?.flushdb()
+        cleanupTestKeys()
     })
 
     afterAll(async () => {
-        await redis?.flushdb()
+        cleanupTestKeys()
     })
 
     const createMockContext = (): Context => {
@@ -39,7 +39,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: clientIp,
                     identifierType: "ip",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
                     maxRequests: 5,
                     timeWindow: "1 m"
                 })
@@ -57,7 +57,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: clientIp,
                     identifierType: "ip",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
                     maxRequests: 5,
                     timeWindow: "1 m"
                 })
@@ -68,7 +68,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: clientIp,
                     identifierType: "ip",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
                     maxRequests: 5,
                     timeWindow: "1 m"
                 })
@@ -83,7 +83,7 @@ describe("Rate Limit For Create Post", () => {
                 endpoint: "feed/create-post",
                 identifier: clientIp,
                 identifierType: "ip",
-                errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                errorCode: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
                 maxRequests: 5,
                 timeWindow: "1 m"
             })
@@ -104,7 +104,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: userId,
                     identifierType: "user",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
                     maxRequests: 3,
                     timeWindow: "5 m"
                 })
@@ -122,7 +122,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: userId,
                     identifierType: "user",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
                     maxRequests: 3,
                     timeWindow: "5 m"
                 })
@@ -133,7 +133,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: userId,
                     identifierType: "user",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
                     maxRequests: 3,
                     timeWindow: "5 m"
                 })
@@ -151,7 +151,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: userId1,
                     identifierType: "user",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
                     maxRequests: 3,
                     timeWindow: "5 m"
                 })
@@ -162,7 +162,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: userId2,
                     identifierType: "user",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
                     maxRequests: 3,
                     timeWindow: "5 m"
                 })
@@ -181,7 +181,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: clientIp,
                     identifierType: "ip",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
                     maxRequests: 5,
                     timeWindow: "1 m"
                 })
@@ -192,7 +192,7 @@ describe("Rate Limit For Create Post", () => {
                     endpoint: "feed/create-post",
                     identifier: userId,
                     identifierType: "user",
-                    errorCode: "CREATE_POST_RATE_LIMIT_EXCEEDED",
+                    errorCode: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
                     maxRequests: 3,
                     timeWindow: "5 m"
                 })

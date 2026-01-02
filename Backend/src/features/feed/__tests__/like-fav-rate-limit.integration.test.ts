@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, vi, it } from "vitest";
-import { getRedisClient } from "../../../configs/redis.js";
+import { cleanupTestKeys, getRedisClient } from "../../../configs/redis.js";
 import { Context } from "hono";
 import { enforceRateLimit } from "../../../lib/rateLimit.js";
 import { AppError } from "../../../errors/customError.js";
@@ -12,11 +12,11 @@ beforeAll(() => {
 })
 
 beforeEach(async () => {
-    await redis?.flushdb()
+    cleanupTestKeys()
 })
 
 afterAll(async () => {
-    await redis?.flushdb()
+    cleanupTestKeys()
 })
 
 const createMockContext = (): Context => {
