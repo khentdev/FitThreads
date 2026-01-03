@@ -32,24 +32,29 @@ describe("Rate Limit For Search", () => {
 
     beforeEach(async () => {
         await cleanupTestKeys()
+        vi.mocked(next).mockClear()
     })
 
     afterAll(async () => {
         await cleanupTestKeys()
     })
 
-    const createMockContext = (ip: string, user?: { id: string }): Context => {
+    const createMockContext = (ip: string, user?: { id: string }, searchQuery: string = "test"): Context => {
         return {
             req: {
                 header: (name: string) => {
                     if (name === "x-forwarded-for") return ip
                     return undefined
+                },
+                query: (name: string) => {
+                    if (name === "search") return searchQuery
+                    return undefined
                 }
             },
             header: vi.fn(),
             get: (key: string) => {
-                if (key === "verifyTokenVariables") {
-                    return { user }
+                if (key === "optionalVerifyTokenVariables") {
+                    return user ? { userId: user.id } : undefined
                 }
                 return undefined
             }
@@ -86,8 +91,6 @@ describe("Rate Limit For Search", () => {
             const ip = "10.0.0.3"
             const user = { id: "user1" }
             const ctx = createMockContext(ip, user)
-
-            vi.mocked(next).mockClear()
 
             for (let i = 0; i < 3; i++) {
                 await rateLimitSearch(ctx, next)
@@ -138,6 +141,53 @@ describe("Rate Limit For Search", () => {
             }
             await expect(rateLimitSearch(ctxUnauth, next)).rejects.toThrow(AppError)
             await expect(rateLimitSearch(ctxAuth, next)).resolves.toBeUndefined()
+        })
+    })
+
+    describe("No Search Query", () => {
+        it("should NOT rate limit if search query is missing", { timeout: 10000 }, async () => {
+            const ip = "10.0.0.7"
+            const ctx = createMockContext(ip, undefined, "")
+
+            for (let i = 0; i < 10; i++) {
+                await rateLimitSearch(ctx, next)
+            }
+            expect(next).toHaveBeenCalledTimes(10)
+        })
+
+        it("should NOT rate limit if search query is sanitized to empty", { timeout: 10000 }, async () => {
+            const ip = "10.0.0.8"
+            const ctx = createMockContext(ip, undefined, "!!!")
+
+            for (let i = 0; i < 10; i++) {
+                await rateLimitSearch(ctx, next)
+            }
+            expect(next).toHaveBeenCalledTimes(10)
+        })
+    })
+
+    describe("Optional Authentication", () => {
+        it("should handle optional authentication correctly (user identified via optionalVerifyTokenVariables)", { timeout: 10000 }, async () => {
+            const ip = "10.0.0.9"
+            const user = { id: "user_optional" }
+
+            const ctx = {
+                req: {
+                    header: (name: string) => name === "x-forwarded-for" ? ip : undefined,
+                    query: (name: string) => name === "search" ? "test" : undefined
+                },
+                header: vi.fn(),
+                get: (key: string) => {
+                    if (key === "optionalVerifyTokenVariables") return { userId: user.id }
+                    return undefined
+                }
+            } as unknown as Context
+
+            for (let i = 0; i < 3; i++) {
+                await rateLimitSearch(ctx, next)
+            }
+            expect(next).toHaveBeenCalledTimes(3)
+            await expect(rateLimitSearch(ctx, next)).rejects.toThrow(AppError)
         })
     })
 })

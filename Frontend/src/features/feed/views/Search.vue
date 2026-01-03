@@ -26,8 +26,7 @@
 
                 <div class="flex flex-col mt-4" v-if="(activeFilter === 'top' || activeFilter === 'recent')">
                     <PostSkeleton v-if="searchFeed.isLoading.value" />
-                    <ErrorRetry v-else-if="searchFeed.isError.value"
-                        message="Something went wrong. Please check your connection and try again."
+                    <ErrorRetry v-else-if="searchFeed.isError.value" :message="searchFeed.errorMessage.value"
                         :is-retrying="searchFeed.isRefetching.value" :retryFn="handleTryAgainFeed" />
                     <EmptyState v-else-if="feedResults.length === 0" title="No posts found"
                         message="Try searching for something else." />
@@ -58,7 +57,7 @@
                             </span>
                         </div>
                         <div class="flex gap-6">
-                           <button @click="handleToggleLike({ postId: post.id })"
+                            <button @click="handleToggleLike({ postId: post.id })"
                                 class="flex gap-2 rounded-xl p-2 like-button items-center transition-all cursor-pointer text-text-muted active:scale-90 hover:bg-surface-elevated group">
                                 <Flame class="size-5 like-icon group-active:stroke-red-500 group-active:fill-red-500"
                                     :class="{ 'fill-red-500 stroke-red-500': post.hasLikedByUser }" />
@@ -125,24 +124,24 @@
 </template>
 <script setup lang="ts">
     import { Bookmark, Flame, Search } from "lucide-vue-next";
-import { computed } from 'vue';
-import { useRouter } from "vue-router";
-import EmptyState from "../../../shared/components/empty/EmptyState.vue";
-import ErrorRetry from "../../../shared/components/error/ErrorRetry.vue";
-import PostSkeleton from "../../../shared/components/skeleton/PostSkeleton.vue";
-import ProfileSearchSkeleton from "../../../shared/components/skeleton/ProfileSearchSkeleton.vue";
-import { useLoginModal } from '../../../shared/composables/useLoginModal';
-import { useAuthStore } from '../../auth/store/authStore';
-import { useSearchProfiles } from "../../profile/composables";
-import FeedViewLayout from '../components/FeedViewLayout.vue';
-import { useSearchFeed, useSearchState } from "../composables";
-import { useFeedStore } from '../store/feedStore';
-import type { GetFeedWithCursorResponse, ToggleFavoriteParams, ToggleLikeParams } from "../types";
+    import { computed } from 'vue';
+    import { useRouter } from "vue-router";
+    import EmptyState from "../../../shared/components/empty/EmptyState.vue";
+    import ErrorRetry from "../../../shared/components/error/ErrorRetry.vue";
+    import PostSkeleton from "../../../shared/components/skeleton/PostSkeleton.vue";
+    import ProfileSearchSkeleton from "../../../shared/components/skeleton/ProfileSearchSkeleton.vue";
+    import { useLoginModal } from '../../../shared/composables/useLoginModal';
+    import { useAuthStore } from '../../auth/store/authStore';
+    import { useSearchProfiles } from "../../profile/composables";
+    import FeedViewLayout from '../components/FeedViewLayout.vue';
+    import { useSearchFeed, useSearchState } from "../composables";
+    import { useFeedStore } from '../store/feedStore';
+    import type { GetFeedWithCursorResponse, ToggleFavoriteParams, ToggleLikeParams } from "../types";
 
     const router = useRouter()
     const authStore = useAuthStore()
     const feedStore = useFeedStore()
-    const {openModal} = useLoginModal()
+    const { openModal } = useLoginModal()
 
     const tabs = [
         { id: 'top', label: 'Top' },
