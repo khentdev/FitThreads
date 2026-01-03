@@ -92,3 +92,40 @@ export const rateLimitLikeFavoritePost = async (c: Context<{ Variables: VerifyTo
 
     await next()
 }
+
+export const rateLimitSearch = async (c: Context<{ Variables: VerifyTokenVariables }>, next: Next) => {
+    const verifyTokenVariables = c.get("verifyTokenVariables")
+    const user = verifyTokenVariables?.user
+    const clientIp = getClientIp(c)
+
+    if (user) {
+        await enforceRateLimit(c, {
+            endpoint: "feed/search",
+            identifier: clientIp,
+            identifierType: "ip",
+            errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+            maxRequests: env.RATELIMIT_SEARCH_AUTHENTICATED_IP_MAX,
+            timeWindow: `${env.RATELIMIT_SEARCH_AUTHENTICATED_IP_WINDOW} s`
+        })
+
+        await enforceRateLimit(c, {
+            endpoint: "feed/search",
+            identifier: user.id,
+            identifierType: "user",
+            errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+            maxRequests: env.RATELIMIT_SEARCH_USER_MAX,
+            timeWindow: `${env.RATELIMIT_SEARCH_USER_WINDOW} s`
+        })
+    } else {
+        await enforceRateLimit(c, {
+            endpoint: "feed/search",
+            identifier: clientIp,
+            identifierType: "ip",
+            errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+            maxRequests: env.RATELIMIT_SEARCH_IP_MAX,
+            timeWindow: `${env.RATELIMIT_SEARCH_IP_WINDOW} s`
+        })
+    }
+
+    await next()
+}
