@@ -23,6 +23,12 @@ export const useProfileStore = defineStore('profile', () => {
 
     const currentViewedUsername = ref<string | null>(null);
     const setViewedProfile = (username: string) => {
+        const queryKey = ['profile', { username }]
+        const state = queryClient.getQueryState(queryKey)
+        if (state?.status === 'error') {
+            queryClient.resetQueries({ queryKey })
+        }
+
         currentViewedUsername.value = username;
         errors.profileFetchFailed = false;
         errors.profileNotFound = false;
