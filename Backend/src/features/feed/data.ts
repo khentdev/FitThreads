@@ -45,7 +45,7 @@ export const getFeed = async ({ cursor, limit = 20, sortBy = "recent", search, u
             { postTags: { some: { tag: { name: { search } } } } }
         ]
     } : {
-        // username is used only for getting posts from a specific user, 
+        // username is used only for getting posts from a specific user,
         // if username exists -> getting posts from a specific user
         // else -> getting posts from all users
         ...(username ? { author: { username, isAdmin: false } } : {
@@ -161,7 +161,7 @@ export const getUserFavorites = async ({ username, cursor, limit = 20, authentic
             createdAt: data[data.length - 1].createdAt
         })
         : null;
-        
+
     const transformedData = data.map(post => ({
         ...post,
         post: {
@@ -180,30 +180,23 @@ export const getUserFavorites = async ({ username, cursor, limit = 20, authentic
 }
 
 
-/**
- * req 1: Delete like 
- * if no delete count -> deleted.count = 0
- * wasAlreadyLiked =  deleted.count > 0 (false)
- * Condition: If no delete count -> create like
- * Like exist now in db
- * hasLiked = !wasAlreadyLiked (true)
- * 
- * req 2: Delete Like
- * if delete count -> deleted.count = 1
- * wasAlreadyLiked =  deleted.count > 0 (true)
- * Condition: If delete count -> delete like
- * Like does not exist in db
- * hasLiked = !wasAlreadyLiked (false)
- */
 export const toggleLike = async ({ postId, userId }: ToggleLikeParams) => {
-    const deleted = await prisma.like.deleteMany({ where: { userId, postId } })
-    const wasAlreadyLiked = deleted.count > 0
-    if (!wasAlreadyLiked) {
-        await prisma.like.create({ data: { postId, userId } })
+    try {
+        await prisma.like.create({ data: { userId, postId } })
+        const likeCount = await prisma.like.count({ where: { postId } })
+        return { hasLiked: true, likeCount }
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            try {
+                await prisma.like.delete({ where: { userId_postId: { userId, postId } } })
+            } catch (deleteError: any) {
+                if (deleteError.code !== 'P2025') throw deleteError
+            }
+            const likeCount = await prisma.like.count({ where: { postId } })
+            return { hasLiked: false, likeCount }
+        }
+        throw error
     }
-    const likeCount = await prisma.like.count({ where: { postId } })
-    const hasLiked = !wasAlreadyLiked
-    return { hasLiked, likeCount }
 }
 
 export const checkPostExists = async (postId: string) => {
@@ -213,28 +206,22 @@ export const checkPostExists = async (postId: string) => {
     })
     return !!post
 }
-/**
- * req 1: Delete favorite 
- * if no delete count -> deleted.count = 0
- * wasAlreadyLiked =  deleted.count > 0 (false)
- * Condition: If no delete count -> create favorite
- * Favorite exist now in db
- * hasLiked = !wasAlreadyLiked (true)
- * 
- * req 2: Delete Favorite
- * if delete count -> deleted.count = 1
- * wasAlreadyFavorited =  deleted.count > 0 (true)
- * Condition: If delete count -> delete favorite
- * Favorite does not exist in db
- * hasFavorited = !wasAlreadyFavorited (false)
- */
+
 export const toggleFavorite = async ({ postId, userId }: ToggleFavoriteParams) => {
-    const deleted = await prisma.favorite.deleteMany({ where: { userId, postId } })
-    const wasAlreadyFavorited = deleted.count > 0
-    if (!wasAlreadyFavorited) {
-        await prisma.favorite.create({ data: { postId, userId } })
+    try {
+        await prisma.favorite.create({ data: { userId, postId } })
+        const favoriteCount = await prisma.favorite.count({ where: { postId } })
+        return { hasFavorited: true, favoriteCount }
+    } catch (error: any) {
+        if (error.code === 'P2002') {
+            try {
+                await prisma.favorite.delete({ where: { userId_postId: { userId, postId } } })
+            } catch (deleteError: any) {
+                if (deleteError.code !== 'P2025') throw deleteError
+            }
+            const favoriteCount = await prisma.favorite.count({ where: { postId } })
+            return { hasFavorited: false, favoriteCount }
+        }
+        throw error
     }
-    const favoriteCount = await prisma.favorite.count({ where: { postId } })
-    const hasFavorited = !wasAlreadyFavorited
-    return { hasFavorited, favoriteCount }
 }
