@@ -6,6 +6,9 @@ import { AppError } from "../../errors/customError.js";
 import { enforceRateLimit } from "../../lib/rateLimit.js";
 import { getClientIp } from "../../lib/extractIp.js";
 import { env } from "../../configs/env.js";
+import { getSanitizedFeedQuery } from "./utils/getSanitizedFeedQuery.js";
+import { OptionalVerifyTokenVariables } from "../../middleware/validateOptionalAccessToken.js";
+
 
 const POST_TITLE_MIN = 6;
 const POST_TITLE_MAX = 100;
@@ -93,38 +96,42 @@ export const rateLimitLikeFavoritePost = async (c: Context<{ Variables: VerifyTo
     await next()
 }
 
-export const rateLimitSearch = async (c: Context<{ Variables: VerifyTokenVariables }>, next: Next) => {
-    const verifyTokenVariables = c.get("verifyTokenVariables")
-    const user = verifyTokenVariables?.user
-    const clientIp = getClientIp(c)
+export const rateLimitSearch = async (c: Context<{ Variables: OptionalVerifyTokenVariables }>, next: Next) => {
+    const { search } = getSanitizedFeedQuery(c)
 
-    if (user) {
-        await enforceRateLimit(c, {
-            endpoint: "feed/search",
-            identifier: clientIp,
-            identifierType: "ip",
-            errorCode: "SEARCH_RATELIMIT_EXCEEDED",
-            maxRequests: env.RATELIMIT_SEARCH_AUTHENTICATED_IP_MAX,
-            timeWindow: `${env.RATELIMIT_SEARCH_AUTHENTICATED_IP_WINDOW} s`
-        })
+    if (search) {
+        const optionalVerifyTokenVariables = c.get("optionalVerifyTokenVariables")
+        const userId = optionalVerifyTokenVariables?.userId
+        const clientIp = getClientIp(c)
 
-        await enforceRateLimit(c, {
-            endpoint: "feed/search",
-            identifier: user.id,
-            identifierType: "user",
-            errorCode: "SEARCH_RATELIMIT_EXCEEDED",
-            maxRequests: env.RATELIMIT_SEARCH_USER_MAX,
-            timeWindow: `${env.RATELIMIT_SEARCH_USER_WINDOW} s`
-        })
-    } else {
-        await enforceRateLimit(c, {
-            endpoint: "feed/search",
-            identifier: clientIp,
-            identifierType: "ip",
-            errorCode: "SEARCH_RATELIMIT_EXCEEDED",
-            maxRequests: env.RATELIMIT_SEARCH_IP_MAX,
-            timeWindow: `${env.RATELIMIT_SEARCH_IP_WINDOW} s`
-        })
+        if (userId) {
+            await enforceRateLimit(c, {
+                endpoint: "feed/search",
+                identifier: clientIp,
+                identifierType: "ip",
+                errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+                maxRequests: env.RATELIMIT_SEARCH_AUTHENTICATED_IP_MAX,
+                timeWindow: `${env.RATELIMIT_SEARCH_AUTHENTICATED_IP_WINDOW} s`
+            })
+
+            await enforceRateLimit(c, {
+                endpoint: "feed/search",
+                identifier: userId,
+                identifierType: "user",
+                errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+                maxRequests: env.RATELIMIT_SEARCH_USER_MAX,
+                timeWindow: `${env.RATELIMIT_SEARCH_USER_WINDOW} s`
+            })
+        } else {
+            await enforceRateLimit(c, {
+                endpoint: "feed/search",
+                identifier: clientIp,
+                identifierType: "ip",
+                errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+                maxRequests: env.RATELIMIT_SEARCH_IP_MAX,
+                timeWindow: `${env.RATELIMIT_SEARCH_IP_WINDOW} s`
+            })
+        }
     }
 
     await next()
