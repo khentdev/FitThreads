@@ -75,21 +75,22 @@
                             </button>
                         </div>
                     </div>
-                    <EmptyState v-if="!searchFeed.hasNextPage.value && feedResults.length > 0"
-                        title="You're all caught up!"
-                        message="That's all the posts for now. Check back later for more fitness thoughts."
-                        :show-icon="false" />
-                    <button v-if="searchFeed.hasNextPage.value" @click="handleLoadMoreFeed"
-                        :disabled="!searchFeed.hasNextPage.value || searchFeed.isFetchingNextPage.value"
-                        class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
-                        {{ searchFeed.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
-                    </button>
+                    <template v-if="!searchFeed.isError.value">
+                        <EmptyState v-if="!searchFeed.hasNextPage.value && feedResults.length > 0"
+                            title="You're all caught up!"
+                            message="That's all the posts for now. Check back later for more fitness thoughts."
+                            :show-icon="false" />
+                        <button v-if="searchFeed.hasNextPage.value" @click="handleLoadMoreFeed"
+                            :disabled="!searchFeed.hasNextPage.value || searchFeed.isFetchingNextPage.value"
+                            class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ searchFeed.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
+                        </button>
+                    </template>
                 </div>
 
                 <div class="flex flex-col mt-4" v-if="activeFilter === 'profile'">
-                    <ProfileSearchSkeleton v-if="searchProfiles.isLoading.value" />
-                    <ErrorRetry v-else-if="searchProfiles.isError.value"
-                        message="Something went wrong. Please check your connection and try again."
+                    <ProfileSearchSkeleton v-if="searchProfiles.isLoading.value" :count="10"/>
+                    <ErrorRetry v-else-if="searchProfiles.isError.value" :message="searchProfiles.errorMessage.value"
                         :is-retrying="searchProfiles.isRefetching.value" :retryFn="handleTryAgainProfile" />
                     <EmptyState v-else-if="profileResults.length === 0" title="No profiles found"
                         message="Try searching for a different username." />
@@ -108,15 +109,17 @@
                             </div>
                         </div>
                     </div>
-                    <EmptyState v-if="!searchProfiles.hasNextPage.value && profileResults.length > 0"
-                        title="You're all caught up!"
-                        message="That's all the profiles for now. Check back later for more profiles."
-                        :show-icon="false" />
-                    <button v-if="searchProfiles.hasNextPage.value" @click="handleLoadMoreProfile"
-                        :disabled="!searchProfiles.hasNextPage.value || searchProfiles.isFetchingNextPage.value"
-                        class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
-                        {{ searchProfiles.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
-                    </button>
+                    <template v-if="!searchProfiles.isError.value">
+                        <EmptyState v-if="!searchProfiles.hasNextPage.value && profileResults.length > 0"
+                            title="You're all caught up!"
+                            message="That's all the profiles for now. Check back later for more profiles."
+                            :show-icon="false" />
+                        <button v-else-if="searchProfiles.hasNextPage.value" @click="handleLoadMoreProfile"
+                            :disabled="!searchProfiles.hasNextPage.value || searchProfiles.isFetchingNextPage.value"
+                            class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
+                            {{ searchProfiles.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
+                        </button>
+                    </template>
                 </div>
             </template>
         </div>

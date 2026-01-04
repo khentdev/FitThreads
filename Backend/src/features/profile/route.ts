@@ -1,10 +1,10 @@
 import { Hono } from "hono";
-import { validateUsernameParam } from "./middlewares.js";
+import { rateLimitProfileSearch, validateUsernameParam } from "./middlewares.js";
 import { getUserProfileController, searchProfilesController, updateProfileController } from "./controller.js";
 import { verifyToken } from "../../middleware/validateAccessToken.js";
 
 const profileRoutes = new Hono();
-profileRoutes.get("/search", searchProfilesController);
+profileRoutes.get("/search",rateLimitProfileSearch, searchProfilesController);
 profileRoutes.get("/:username", validateUsernameParam, getUserProfileController)
     .put("/update", verifyToken, updateProfileController)
 

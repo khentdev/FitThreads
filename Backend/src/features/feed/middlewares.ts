@@ -109,7 +109,7 @@ export const rateLimitSearch = async (c: Context<{ Variables: OptionalVerifyToke
                 endpoint: "feed/search",
                 identifier: clientIp,
                 identifierType: "ip",
-                errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+                errorCode: "FEED_SEARCH_RATELIMIT_EXCEEDED",
                 maxRequests: env.RATELIMIT_SEARCH_AUTHENTICATED_IP_MAX,
                 timeWindow: `${env.RATELIMIT_SEARCH_AUTHENTICATED_IP_WINDOW} s`
             })
@@ -118,7 +118,7 @@ export const rateLimitSearch = async (c: Context<{ Variables: OptionalVerifyToke
                 endpoint: "feed/search",
                 identifier: userId,
                 identifierType: "user",
-                errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+                errorCode: "FEED_SEARCH_RATELIMIT_EXCEEDED",
                 maxRequests: env.RATELIMIT_SEARCH_USER_MAX,
                 timeWindow: `${env.RATELIMIT_SEARCH_USER_WINDOW} s`
             })
@@ -127,12 +127,64 @@ export const rateLimitSearch = async (c: Context<{ Variables: OptionalVerifyToke
                 endpoint: "feed/search",
                 identifier: clientIp,
                 identifierType: "ip",
-                errorCode: "SEARCH_RATELIMIT_EXCEEDED",
+                errorCode: "FEED_SEARCH_RATELIMIT_EXCEEDED",
                 maxRequests: env.RATELIMIT_SEARCH_IP_MAX,
                 timeWindow: `${env.RATELIMIT_SEARCH_IP_WINDOW} s`
             })
         }
     }
 
+    await next()
+}
+
+export const rateLimitGetProfilePosts = async (c: Context<{ Variables: OptionalVerifyTokenVariables }>, next: Next) => {
+    const { username } = getSanitizedFeedQuery(c)
+    const clientIp = getClientIp(c)
+
+    if (username) {
+        await enforceRateLimit(c, {
+            endpoint: "feed",
+            identifier: clientIp,
+            identifierType: "ip",
+            errorCode: "GET_PROFILE_POSTS_RATELIMIT_EXCEEDED",
+            maxRequests: env.RATELIMIT_GET_PROFILE_POSTS_IP_MAX,
+            timeWindow: `${env.RATELIMIT_GET_PROFILE_POSTS_IP_WINDOW} s`
+        })
+    }
+
+    await next()
+}
+
+export const rateLimitGetFavoritePosts = async (c: Context<{ Variables: OptionalVerifyTokenVariables }>, next: Next) => {
+    const { username } = getSanitizedFeedQuery(c)
+    const clientIp = getClientIp(c)
+
+    if (username) {
+        await enforceRateLimit(c, {
+            endpoint: "feed/",
+            identifier: clientIp,
+            identifierType: "ip",
+            errorCode: "GET_PROFILE_FAVORITES_RATELIMIT_EXCEEDED",
+            maxRequests: env.RATELIMIT_GET_PROFILE_FAVORITES_IP_MAX,
+            timeWindow: `${env.RATELIMIT_GET_PROFILE_FAVORITES_IP_WINDOW} s`
+        })
+    }
+
+    await next()
+}
+
+export const rateLimitGetFeed = async (c: Context<{ Variables: OptionalVerifyTokenVariables }>, next: Next) => {
+    const { username, search } = getSanitizedFeedQuery(c)
+    const clientIp = getClientIp(c)
+    if (!username && !search) {
+        await enforceRateLimit(c, {
+            endpoint: "feed",
+            identifier: clientIp,
+            identifierType: "ip",
+            errorCode: "GET_FEED_RATELIMIT_EXCEEDED",
+            maxRequests: env.RATELIMIT_GET_FEED_IP_MAX,
+            timeWindow: `${env.RATELIMIT_GET_FEED_IP_WINDOW} s`
+        })
+    }
     await next()
 }

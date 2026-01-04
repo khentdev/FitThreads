@@ -1,8 +1,7 @@
 <template>
     <FeedViewLayout title="Feed">
-        <PostSkeleton v-if="query.isPending.value" :count="5" />
-        <ErrorRetry v-else-if="query.isError.value"
-            message="Something went wrong. Please check your connection and try again."
+        <PostSkeleton v-if="query.isPending.value" />
+        <ErrorRetry v-else-if="query.isError.value" :message="query.errorMessage.value"
             :is-retrying="query.isRefetching.value" :retryFn="handleTryAgain" />
         <EmptyState v-else-if="allPosts.length === 0" title="No posts yet"
             message="Be the first to share your fitness thoughts." />
@@ -54,15 +53,16 @@
                     </button>
                 </div>
             </div>
-
-            <EmptyState v-if="!query.hasNextPage.value && allPosts.length > 0" title="You're all caught up!"
-                message="That's all the posts for now. Check back later for more fitness thoughts."
-                :show-icon="false" />
-            <button v-if="query.hasNextPage.value" @click="handleLoadMore"
-                :disabled="!query.hasNextPage.value || query.isFetchingNextPage.value"
-                class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ query.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
-            </button>
+            <template v-if="!query.isError.value">
+                <EmptyState v-if="!query.hasNextPage.value && allPosts.length > 0" title="You're all caught up!"
+                    message="That's all the posts for now. Check back later for more fitness thoughts."
+                    :show-icon="false" />
+                <button v-if="query.hasNextPage.value" @click="handleLoadMore"
+                    :disabled="!query.hasNextPage.value || query.isFetchingNextPage.value"
+                    class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed">
+                    {{ query.isFetchingNextPage.value ? 'Loading...' : 'Load More' }}
+                </button>
+            </template>
         </div>
     </FeedViewLayout>
 </template>

@@ -53,7 +53,7 @@ export const useSearchFeed = (
         if (!query.error.value) return ""
         const axiosError = query.error.value as AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>
         const { code } = errorHandler(axiosError)
-        if (code === 'SEARCH_RATELIMIT_EXCEEDED') {
+        if (code === 'FEED_SEARCH_RATELIMIT_EXCEEDED') {
             return `Search limit reached. Please wait ${formatRetryTime(retryCountdown.value)}.`
         }
         return "Something went wrong. Please check your connection and try again."
@@ -64,7 +64,7 @@ export const useSearchFeed = (
         const axiosError = error as AxiosError<ErrorResponse<FEED_ERROR_CODES.FeedErrorCode>>
         const { code, data } = errorHandler(axiosError)
 
-        if (code === 'SEARCH_RATELIMIT_EXCEEDED') {
+        if (code === 'FEED_SEARCH_RATELIMIT_EXCEEDED') {
             const seconds = data?.['retryAfter'] as number
             startCountdown(seconds)
         }
