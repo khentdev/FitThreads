@@ -25,6 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     const systemErrors = reactive({
         sessionError: false,
+        rateLimitError: false,
     })
 
     const errors = reactive({
@@ -217,7 +218,7 @@ export const useAuthStore = defineStore('auth', () => {
             }
             if (code === AUTH_CODES.AUTH_OTP_SEND_FAILED) errors.formError = message
             if (code === AUTH_CODES.AUTH_RATE_LIMIT_RESEND_OTP) errors.formError = message
-            
+
             return { success: false, redirect: null }
         } finally {
             states.isResendingOTP = false
@@ -337,10 +338,16 @@ export const useAuthStore = defineStore('auth', () => {
                         AUTH_CODES.TOKEN_INVALID,
                         AUTH_CODES.TOKEN_EXPIRED
                     ]
+
                     if (code && sessionFailureCodes.includes(code)) {
                         clearUser()
                         systemErrors.sessionError = false
                         return { success: false, logout: true }
+                    }
+
+                    if (code === AUTH_CODES.RATELIMIT_SESSION_EXCEEDED) {
+                        systemErrors.rateLimitError = true
+                        return { success: false, logout: false }
                     }
 
                     if (type === "offline" || type === "server_error" || type === "unreachable" || type === "timeout") {

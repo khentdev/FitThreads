@@ -143,9 +143,13 @@ export const SESSION_LOCK_IN_PROGRESS = "SESSION_LOCK_IN_PROGRESS"
 export const TOKEN_INVALID = "TOKEN_INVALID"
 export const TOKEN_EXPIRED = "TOKEN_EXPIRED"
 
+// Ratelimit Errors
+export const RATELIMIT_SESSION_EXCEEDED = "RATELIMIT_SESSION_EXCEEDED"
+
 export type RefreshSessionErrorCode =
     | typeof SESSION_UNAUTHORIZED
     | typeof SESSION_REFRESH_FAILED
     | typeof SESSION_LOCK_IN_PROGRESS
     | typeof TOKEN_INVALID
     | typeof TOKEN_EXPIRED
+    | typeof RATELIMIT_SESSION_EXCEEDED
