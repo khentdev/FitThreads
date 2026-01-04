@@ -18,7 +18,10 @@ export const FEED_ERROR_CODES = {
     CREATE_POST_IP_RATE_LIMIT_EXCEEDED: "CREATE_POST_IP_RATE_LIMIT_EXCEEDED",
     CREATE_POST_USER_RATE_LIMIT_EXCEEDED: "CREATE_POST_USER_RATE_LIMIT_EXCEEDED",
     TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED: "TOGGLE_LIKE_FAVORITE_RATELIMIT_EXCEEDED",
-    SEARCH_RATELIMIT_EXCEEDED: "SEARCH_RATELIMIT_EXCEEDED",
+    FEED_SEARCH_RATELIMIT_EXCEEDED: "FEED_SEARCH_RATELIMIT_EXCEEDED",
+    GET_PROFILE_POSTS_RATELIMIT_EXCEEDED: "GET_PROFILE_POSTS_RATELIMIT_EXCEEDED",
+    GET_PROFILE_FAVORITES_RATELIMIT_EXCEEDED: "GET_PROFILE_FAVORITES_RATELIMIT_EXCEEDED",
+    GET_FEED_RATELIMIT_EXCEEDED: "GET_FEED_RATELIMIT_EXCEEDED",
 
     // Service Layer Error
     POST_CREATION_FAILED: "POST_CREATION_FAILED",
@@ -97,10 +100,25 @@ export const FEED_ERROR_DEF: Record<FeedErrorCode, ErrorDefinitions> = {
         status: 429,
         message: "You're interacting too quickly. Please try again in a moment."
     },
-    SEARCH_RATELIMIT_EXCEEDED: {
-        code: "SEARCH_RATELIMIT_EXCEEDED",
+    FEED_SEARCH_RATELIMIT_EXCEEDED: {
+        code: "FEED_SEARCH_RATELIMIT_EXCEEDED",
         status: 429,
         message: "Search limit exceeded. Please try again later."
+    },
+    GET_PROFILE_POSTS_RATELIMIT_EXCEEDED: {
+        code: "GET_PROFILE_POSTS_RATELIMIT_EXCEEDED",
+        status: 429,
+        message: "You're viewing posts too fast. Pace yourself."
+    },
+    GET_PROFILE_FAVORITES_RATELIMIT_EXCEEDED: {
+        code: "GET_PROFILE_FAVORITES_RATELIMIT_EXCEEDED",
+        status: 429,
+        message: "You're viewing favorites too fast. Pace yourself."
+    },
+    GET_FEED_RATELIMIT_EXCEEDED: {
+        code: "GET_FEED_RATELIMIT_EXCEEDED",
+        status: 429,
+        message: "You're loading posts too fast. Pace yourself."
     },
 
     // Service Layer Error

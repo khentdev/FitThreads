@@ -7,7 +7,11 @@ export const PROFILE_ERROR_CODES = {
     PROFILE_SEARCH_FAILED: "PROFILE_SEARCH_FAILED",
     PROFILE_UPDATE_FAILED: "PROFILE_UPDATE_FAILED",
     INVALID_PROFILE_BIO: "INVALID_PROFILE_BIO",
-    PROFILE_BIO_LENGTH_EXCEEDED: "PROFILE_BIO_LENGTH_EXCEEDED"
+    PROFILE_BIO_LENGTH_EXCEEDED: "PROFILE_BIO_LENGTH_EXCEEDED",
+
+    // Ratelimit Errors
+    PROFILE_SEARCH_RATELIMIT_EXCEEDED: "PROFILE_SEARCH_RATELIMIT_EXCEEDED",
+    GET_USER_PROFILE_RATELIMIT_EXCEEDED: "GET_USER_PROFILE_RATELIMIT_EXCEEDED"
 } as const
 
 export const PROFILE_ERROR_DEF: Record<ProfileErrorCode, ErrorDefinitions> = {
@@ -45,6 +49,18 @@ export const PROFILE_ERROR_DEF: Record<ProfileErrorCode, ErrorDefinitions> = {
         code: "PROFILE_BIO_LENGTH_EXCEEDED",
         status: 400,
         message: "Keep your bio under 100 characters - short and authentic."
+    },
+
+    // Ratelimit Errors
+    PROFILE_SEARCH_RATELIMIT_EXCEEDED: {
+        code: "PROFILE_SEARCH_RATELIMIT_EXCEEDED",
+        status: 429,
+        message: "Search limit exceeded. Please try again later."
+    },
+    GET_USER_PROFILE_RATELIMIT_EXCEEDED: {
+        code: "GET_USER_PROFILE_RATELIMIT_EXCEEDED",
+        status: 429,
+        message: "You're viewing profiles too fast. Pace yourself."
     }
 }
 
