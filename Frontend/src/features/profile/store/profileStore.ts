@@ -9,11 +9,13 @@ import { useAuthStore } from '../../auth/store/authStore';
 import * as PROFILE_ERROR_CODES from '../errors/profileErrorCodes';
 import { profileService } from '../service';
 import type { UserProfile } from '../types';
+import { useRouter } from 'vue-router';
 
 export const useProfileStore = defineStore('profile', () => {
     const { toast } = useToast()
     const queryClient = useQueryClient()
     const authStore = useAuthStore();
+    const router = useRouter()
 
     const errors = reactive({
         profileFetchFailed: false,
@@ -55,7 +57,12 @@ export const useProfileStore = defineStore('profile', () => {
     watchEffect(() => {
         const error = profileQuery.error.value as AxiosError<ErrorResponse<PROFILE_ERROR_CODES.ProfileErrorCode>>
         if (error) {
-            const { code, type } = errorHandler(error)
+            const { code, type, message } = errorHandler(error)
+            if (code === PROFILE_ERROR_CODES.GET_USER_PROFILE_RATELIMIT_EXCEEDED) {
+                toast.error(message)
+                currentViewedUsername.value = null
+                router.push({ name: "feed" })
+            }
             if (code === PROFILE_ERROR_CODES.INVALID_USERNAME_FORMAT || code === PROFILE_ERROR_CODES.USER_NOT_FOUND)
                 errors.profileNotFound = true;
             else if (code === PROFILE_ERROR_CODES.PROFILE_RETRIEVAL_FAILED) errors.profileFetchFailed = true;
