@@ -119,7 +119,7 @@ describe("Refresh Session Integration Tests", () => {
         const concurrentRequests = Array.from({ length: 5 }, (_, i) => {
             console.log(`Launching request ${i + 1}`);
             return refreshSessionService({
-                user: { id: user.id, email: user.email, username: user.username },
+                user,
                 deviceId: testDeviceId,
                 oldToken: initialToken
             });
@@ -130,7 +130,7 @@ describe("Refresh Session Integration Tests", () => {
 
         const uniqueRefreshTokens = new Set(results.map(r => r.refreshToken));
         console.log(`Unique refresh tokens: ${uniqueRefreshTokens.size} (should be 1)`);
-        
+
         results.forEach((r, i) => {
             console.log(`Request ${i + 1}: ${r.refreshToken?.substring(0, 20)}...`);
         });

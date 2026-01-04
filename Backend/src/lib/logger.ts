@@ -1,5 +1,6 @@
 import pino from "pino";
 import { env } from "../configs/env.js";
+import { randomUUID } from "crypto";
 
 const prod = env.NODE_ENV === "production";
 const logger = pino({
@@ -23,6 +24,7 @@ const logger = pino({
     timestamp: pino.stdTimeFunctions.isoTime,
     base: {
         env: env.NODE_ENV,
+        id: randomUUID().slice(0, 8)
     },
 });
 
