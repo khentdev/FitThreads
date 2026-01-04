@@ -7,7 +7,10 @@ export const SESSION_ERROR_CODES = {
     SESSION_REFRESH_FAILED: "SESSION_REFRESH_FAILED",
     SESSION_LOCK_IN_PROGRESS: "SESSION_LOCK_IN_PROGRESS",
     TOKEN_INVALID: "TOKEN_INVALID",
-    TOKEN_EXPIRED: "TOKEN_EXPIRED"
+    TOKEN_EXPIRED: "TOKEN_EXPIRED",
+
+    // Ratelimit Errors
+    RATELIMIT_SESSION_EXCEEDED: "RATELIMIT_SESSION_EXCEEDED"
 } as const
 
 export const SESSION_ERROR_DEF: Record<SessionErrorCode, ErrorDefinitions> = {
@@ -38,6 +41,13 @@ export const SESSION_ERROR_DEF: Record<SessionErrorCode, ErrorDefinitions> = {
         code: "TOKEN_EXPIRED",
         status: 401,
         message: "Token has expired."
+    },
+
+    // Ratelimit Errors
+    RATELIMIT_SESSION_EXCEEDED: {
+        code: "RATELIMIT_SESSION_EXCEEDED",
+        status: 429,
+        message: "Too many requests. Please try again later."
     }
 }
 

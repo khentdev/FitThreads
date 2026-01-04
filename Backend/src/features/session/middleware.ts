@@ -8,11 +8,23 @@ import { prisma } from "../../../prisma/prismaConfig.js"
 import { AppError } from "../../errors/customError.js"
 import { SessionPayloadParams } from "./types.js"
 import logger from "../../lib/logger.js"
+import { getClientIp } from "../../lib/extractIp.js"
+import { enforceRateLimit } from "../../lib/rateLimit.js"
 
 export const validateSession = async (c: Context, next: Next) => {
     const isProd = env.NODE_ENV === "production"
     const cookieName = isProd ? "__Secure-sid" : "sid"
     const sessionCookie = getCookieValue(c, cookieName)
+    const clientIp = getClientIp(c)
+
+    await enforceRateLimit(c, {
+        endpoint: "session",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "RATELIMIT_SESSION_EXCEEDED",
+        maxRequests: env.RATELIMIT_SESSION_REFRESH_IP_MAX,
+        timeWindow: `${env.RATELIMIT_SESSION_REFRESH_IP_WINDOW} s`
+    })
 
     const csrfTokenName = isProd ? "__Secure-csrfToken" : "csrfToken"
     const csrfTokenFromCookie = getCookieValue(c, csrfTokenName)
@@ -22,7 +34,7 @@ export const validateSession = async (c: Context, next: Next) => {
     const Unauthorized = (reason: string, field: string): AppError => {
         logger.warn({ reason }, "Session Validation Failed.")
         return new AppError("SESSION_UNAUTHORIZED", { field })
-    }
+    };
 
     if (!csrfTokenFromCookie || !csrfTokenFromHeader || !sessionCookie || csrfTokenFromCookie !== csrfTokenFromHeader)
         throw Unauthorized("CSRF or session cookie validation failed", "session_csrf")
@@ -31,6 +43,15 @@ export const validateSession = async (c: Context, next: Next) => {
         throw Unauthorized("Invalid fingerprint format", "device_fingerprint")
 
     const payload = await verifyTokenOrThrow(sessionCookie)
+
+    await enforceRateLimit(c, {
+        endpoint: "session",
+        identifier: payload.userId,
+        identifierType: "user",
+        errorCode: "RATELIMIT_SESSION_EXCEEDED",
+        maxRequests: env.RATELIMIT_SESSION_REFRESH_USER_MAX,
+        timeWindow: `${env.RATELIMIT_SESSION_REFRESH_USER_WINDOW} s`
+    })
 
     if (!compareHashes(fingerprint!, payload.deviceId))
         throw Unauthorized("Fingerprint mismatch", "device_fingerprint")
