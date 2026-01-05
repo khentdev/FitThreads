@@ -1,4 +1,4 @@
-import { RefreshSessionParams, SessionCachePayload } from "./types.js";
+import { LogoutParamsService, RefreshSessionParams, SessionCachePayload } from "./types.js";
 import { prisma } from "../../../prisma/prismaConfig.js";
 import { getCacheKey } from "./utils/cache-keys.js";
 import { hashData } from "../../lib/hash.js";
@@ -82,4 +82,24 @@ export const refreshSessionService = async ({ user, deviceId, oldToken }: Refres
     } finally {
         await releaseLock({ lockKey: requestLockKey, lockValue: (lockResult as any).lockValue })
     }
+}
+
+export const logoutService = async ({ user, oldToken }: LogoutParamsService) => {
+    const redis = getRedisClient()
+    const oldTokenHashed = hashData(oldToken)
+    const oldTokenCacheKey = getCacheKey.sessionToken(oldTokenHashed)
+    try {
+        await redis.del(oldTokenCacheKey)
+        await prisma.session.deleteMany({
+            where: {
+                userId: user.id,
+                token: oldTokenHashed
+            }
+        })
+    } catch (err) {
+        console.error(err)
+        logger.error({ error: err, userId: user.id }, "Failed to logout")
+        throw new AppError("SESSION_LOGOUT_FAILED", { field: "session_logout" })
+    }
+
 }

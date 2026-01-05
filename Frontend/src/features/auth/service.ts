@@ -30,5 +30,9 @@ export const authService = {
     refreshSession: async () => {
         const response = await axiosInstance.post('/auth/session/refresh')
         return getTypedResponse<AuthRefreshSessionResponse>(response)
+    },
+    logoutSession: async () => {
+        const response = await axiosInstance.post("/auth/session/logout")
+        return getTypedResponse<{ message: string }>(response)
     }
 }

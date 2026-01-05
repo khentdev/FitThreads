@@ -6,6 +6,8 @@ export const SESSION_ERROR_CODES = {
 
     SESSION_REFRESH_FAILED: "SESSION_REFRESH_FAILED",
     SESSION_LOCK_IN_PROGRESS: "SESSION_LOCK_IN_PROGRESS",
+    SESSION_LOGOUT_FAILED: "SESSION_LOGOUT_FAILED",
+
     TOKEN_INVALID: "TOKEN_INVALID",
     TOKEN_EXPIRED: "TOKEN_EXPIRED",
 
@@ -29,6 +31,11 @@ export const SESSION_ERROR_DEF: Record<SessionErrorCode, ErrorDefinitions> = {
         code: "SESSION_LOCK_IN_PROGRESS",
         status: 429,
         message: "Your session is currently being refreshed. Please try again later."
+    },
+    SESSION_LOGOUT_FAILED: {
+        code: "SESSION_LOGOUT_FAILED",
+        status: 401,
+        message: "There was an error logging you out."
     },
 
 
