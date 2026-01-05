@@ -48,3 +48,13 @@ export type SessionCachePayload = {
     user: User,
     refreshToken: string
 }
+export type LogoutParamsService = Omit<LogoutParamsController, "csrfTokenName" | "sessionCookieName">
+export type LogoutParamsController = {
+    user: User
+    oldToken: string
+    csrfTokenName: string
+    sessionCookieName:string
+}
+export type LogoutPayloadVariables = {
+    logoutPayload: LogoutParamsController
+}
