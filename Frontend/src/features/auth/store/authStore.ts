@@ -8,9 +8,14 @@ import type { LoginErrorCode, RefreshSessionErrorCode, ResendOTPErrorCode, SendM
 import * as AUTH_CODES from '../errors/authErrorCodes'
 import { authService } from '../service'
 import type { AuthContext, AuthRefreshSessionResponse, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyMagicLinkResponse, AuthVerifyOTPResponse } from '../types'
+import { useRouter } from 'vue-router'
+import { useQueryClient } from '@tanstack/vue-query'
 
 export const useAuthStore = defineStore('auth', () => {
     const { toast } = useToast()
+
+    const router = useRouter()
+    const queryClient = useQueryClient()
 
     const states = reactive({
         isLoggingIn: false,
@@ -21,6 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
         isVerifyingMagicLink: false,
         isRefreshingSession: false,
         sessionInitialized: false,
+        isLoggingOut: false
     })
 
     const systemErrors = reactive({
@@ -346,7 +352,7 @@ export const useAuthStore = defineStore('auth', () => {
                     }
 
                     if (code === AUTH_CODES.RATELIMIT_SESSION_EXCEEDED) {
-                        systemErrors.rateLimitError = true
+                        // systemErrors.rateLimitError = true
                         return { success: false, logout: false }
                     }
 
@@ -369,6 +375,22 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const logoutSession = async () => {
+        if (states.isLoggingOut) return
+        states.isLoggingOut = true
+        try {
+            await authService.logoutSession()
+            return { success: true }
+        } catch (err) {
+            return { success: false }
+        } finally {
+            clearUser()
+            await queryClient.invalidateQueries()
+            await router.push({ name: "feed" })
+            states.isLoggingOut = false
+        }
+    }
+
     return {
         hasAuthenticated,
         getUsername,
@@ -385,6 +407,7 @@ export const useAuthStore = defineStore('auth', () => {
         verifyMagicLinkToken,
         refreshSession,
         states,
-        systemErrors
+        systemErrors,
+        logoutSession
     }
 })

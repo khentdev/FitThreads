@@ -153,3 +153,5 @@ export type RefreshSessionErrorCode =
     | typeof TOKEN_INVALID
     | typeof TOKEN_EXPIRED
     | typeof RATELIMIT_SESSION_EXCEEDED
+
+export type SESSION_LOGOUT_FAILED = "SESSION_LOGOUT_FAILED"
