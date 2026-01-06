@@ -7,6 +7,7 @@ import {
     sendMagicLinkService,
     verifyMagicLinkService,
     sendPasswordLinkService,
+    verifyPasswordResetService,
 } from "./service.js";
 import {
     LoginParamsVariables,
@@ -14,15 +15,24 @@ import {
     VerifyEmailAndCreateSessionParamsVariables,
     ResendOTPParamsVariables,
     VerifyMagicLinkParamsVariables,
+    VerifyPasswordResetParamsVariables,
 } from "./types.js";
 import { setAuthCookie, setCSRFCookie } from "./cookie.config.js";
-import { tokenExpiry } from "../../configs/env.js";
+import { env, tokenExpiry } from "../../configs/env.js";
 import { prisma } from "../../../prisma/prismaConfig.js";
 
 // For development purposes only
 export const deleteUserByEmailController = async (
     c: Context
 ) => {
+    if (env.NODE_ENV === "production") return c.json(
+        {
+            code: "DEV_ROUTE_FORBIDDEN",
+            message: "This route is available in development only."
+        },
+        403
+    );
+
     const { email } = await c.req.json<{ email: string }>()
     const exist = await prisma.user.findUnique({ where: { email } })
     if (!exist) return c.json({ error: "User not found or already deleted" }, 404)
@@ -165,5 +175,33 @@ export const sendPasswordResetController = async (c: Context<{ Variables: { vali
 
     const res = await sendPasswordLinkService(user, email)
     return c.json({ message: "Password reset link sent - check your inbox.", email: res.email }, 200)
+}
+
+export const verifyPasswordResetController = async (c: Context<{ Variables: VerifyPasswordResetParamsVariables }>) => {
+    const passwordResetParams = c.get("verifyPasswordResetParams")
+    const { accessToken, refreshToken, csrfToken, user } = await verifyPasswordResetService(passwordResetParams)
+
+    setAuthCookie({
+        c,
+        name: "sid",
+        value: refreshToken,
+        options: { maxAge: tokenExpiry().refreshTokenMaxAge }
+    });
+    setCSRFCookie({
+        c,
+        name: "csrfToken",
+        value: csrfToken,
+        options: { maxAge: tokenExpiry().csrfTokenMaxAge }
+    });
+    
+    return c.json({
+        message: "We've resetted your password and logged you in!",
+        accessToken,
+        user: {
+            emailVerified: user.emailVerified,
+            email: user.email,
+            username: user.username
+        }
+    }, 200)
 
 }

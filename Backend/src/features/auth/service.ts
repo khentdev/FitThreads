@@ -1,7 +1,7 @@
 import { prisma } from "../../../prisma/prismaConfig.js";
 import bcrypt from "bcrypt";
 import { AppError } from "../../errors/customError.js";
-import { LoginParams, SendOTPParams, VerifyEmailAndCreateSessionParams, VerifyMagicLinkParams } from "./types.js";
+import { LoginParams, SendOTPParams, VerifyEmailAndCreateSessionParams, VerifyMagicLinkParams, VerifyPasswordResetParams } from "./types.js";
 import { storeToken } from "../session/data.js";
 import { generateTokens } from "../session/tokens.js";
 import { hashData } from "../../lib/hash.js";
@@ -302,3 +302,44 @@ export const sendPasswordLinkService = async (user: User, email: string) => {
     return { email }
 }
 
+export const verifyPasswordResetService = async ({ token, deviceId, confirmPassword }: VerifyPasswordResetParams) => {
+    const redis = getRedisClient()
+    const redisKey = RedisKeys.passwordOTP(token)
+
+    const email = await redis.get(redisKey) as string | null;
+    if (!email) throw new AppError("AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED", { field: "password" })
+
+    await redis.del(redisKey);
+
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new AppError("AUTH_USER_NOT_FOUND", { field: "email" });
+
+    try {
+        const { accessToken, refreshToken, csrfToken } = await prisma.$transaction(async (tx) => {
+            const hashedPassword = await bcrypt.hash(confirmPassword, 10)
+            await tx.user.update({
+                where: { id: user.id },
+                data: {
+                    hashedPassword
+                }
+            })
+            const { accessToken: token, refreshToken: sid, csrfToken: csrf, refreshTokenExpiry } = await generateTokens({
+                deviceId,
+                userId: user.id
+            });
+            const hashedToken = hashData(sid);
+            await storeToken({
+                token: hashedToken,
+                userId: user.id,
+                expiresAt: new Date(refreshTokenExpiry * 1000)
+            }, tx);
+            return { accessToken: token, refreshToken: sid, csrfToken: csrf };
+        });
+
+        logger.info({ email: user.email, userId: user.id }, "User logged in automatically after password reset.");
+        return { accessToken, refreshToken, csrfToken, user };
+    } catch (err) {
+        logger.error({ error: err, userId: user.id }, "Automatic login failed after password reset.");
+        throw new AppError("AUTH_PASSWORD_RESET_FAILED", { field: "password" });
+    }
+}

@@ -10,6 +10,7 @@ import type {
     ResendOTPRequestBody,
     SendOTPRequestBody,
     VerifyEmailAndCreateSessionRequestBody,
+    VerifyPasswordResetRequestBody,
 } from "./types.js";
 import { env } from "../../configs/env.js";
 
@@ -212,5 +213,26 @@ export const validateSendPasswordResetLink = async (c: Context, next: Next) => {
         email: (email as string).trim().toLowerCase()
     };
     c.set("validatedPasswordParams", payload)
+    await next()
+}
+
+export const validateVerifyPasswordResetToken = async (c: Context, next: Next) => {
+    const { token, newPassword, confirmPassword } = await c.req.json<VerifyPasswordResetRequestBody>()
+    const fingerprint = c.req.header("X-Fingerprint");
+
+    if (!isMinLength(newPassword, 8))
+        throw new AppError("AUTH_PASSWORD_MIN_LENGTH", { field: "password" });
+
+    if (newPassword !== confirmPassword) throw new AppError("AUTH_PASSWORD_RESET_PASSWORD_MISMATCH", { field: "password" })
+
+    if (!notEmpty(token)) throw new AppError("AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED", { field: "token" })
+    if (!isValidDeviceFingerprint(fingerprint)) throw new AppError("AUTH_INVALID_DEVICE_FINGERPRINT", { field: "device_fingerprint" })
+
+    const payload = {
+        token: (token as string).trim(),
+        deviceId: hashData(fingerprint as string),
+        confirmPassword: (confirmPassword as string).trim()
+    }
+    c.set("verifyPasswordResetParams", payload)
     await next()
 }

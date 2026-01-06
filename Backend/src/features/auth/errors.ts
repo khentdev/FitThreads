@@ -33,7 +33,10 @@ export const AUTH_ERROR_CODES = {
     AUTH_USER_NOT_VERIFIED: "AUTH_USER_NOT_VERIFIED",
     AUTH_SEND_MAGICLINK_FAILED: "AUTH_SEND_MAGICLINK_FAILED",
     AUTH_MAGIC_LINK_INVALID_OR_EXPIRED: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED",
-    AUTH_PASSWORD_OTP_FAILED: "AUTH_PASSWORD_OTP_FAILED"
+    AUTH_PASSWORD_OTP_FAILED: "AUTH_PASSWORD_OTP_FAILED",
+    AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED: "AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED",
+    AUTH_PASSWORD_RESET_PASSWORD_MISMATCH: "AUTH_PASSWORD_RESET_PASSWORD_MISMATCH",
+    AUTH_PASSWORD_RESET_FAILED: "AUTH_PASSWORD_RESET_FAILED"
 } as const
 
 export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
@@ -173,6 +176,21 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
         code: "AUTH_PASSWORD_OTP_FAILED",
         status: 500,
         message: "We couldn't send your verification email. Please try again."
+    },
+    AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED: {
+        code: "AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED",
+        status: 401,
+        message: "This password reset link is invalid or has expired. Request a new one."
+    },
+    AUTH_PASSWORD_RESET_PASSWORD_MISMATCH: {
+        code: "AUTH_PASSWORD_RESET_PASSWORD_MISMATCH",
+        status: 400,
+        message: "New password and confirmation do not match."
+    },
+    AUTH_PASSWORD_RESET_FAILED: {
+        code: "AUTH_PASSWORD_RESET_FAILED",
+        status: 500,
+        message: "We couldn't reset your password right now. Please try again in a moment."
     }
 }
 export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES
