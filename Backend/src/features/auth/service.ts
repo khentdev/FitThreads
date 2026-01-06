@@ -14,7 +14,7 @@ import { env } from "../../configs/env.js";
 import logger from "../../lib/logger.js";
 import { randomUUID } from "crypto";
 import { User } from "../../../generated/prisma/client.js";
-import { generateMagicLink } from "./utils/generateLink.js";
+import { generateMagicLink, generatePasswordResetLink } from "./utils/generateLink.js";
 
 const generateAndSendOTP = async (userId: string, email: string) => {
     const otp = generateOTP(6);
@@ -259,5 +259,46 @@ export const verifyMagicLinkService = async ({ token, deviceId }: VerifyMagicLin
     }
 }
 
+/**
+ * Flow: Send email with otp(token) in a url query,
+ * User received the email and clicked,
+ * Redirected to frontend with token query,
+ * Enters their (new password, confirm password) on form -> Submit
+ */
+export const sendPasswordLinkService = async (user: User, email: string) => {
+    if (!user.emailVerified) {
+        await generateAndSendOTP(user.id, user.email);
+        throw new AppError("AUTH_USER_NOT_VERIFIED", { field: "email", data: { email } });
+    }
 
+    const redis = getRedisClient()
+    const token = randomUUID().replace(/-/g, "").slice(0, 32)
+    const redisKey = RedisKeys.passwordOTP(token)
+
+    try {
+        await redis.setex(redisKey, env.OTP_EXPIRY_SECONDS, email);
+        logger.info({ email, redisKey }, "OTP stored in Redis with userId");
+    } catch (error) {
+        logger.error({ error, email }, "Failed to store OTP in Redis");
+        throw new AppError("AUTH_PASSWORD_OTP_FAILED", { field: "password" });
+    }
+
+    const passwordLink = generatePasswordResetLink(token)
+    const emailTemplate = emailTemplates.passwordReset(passwordLink)
+    const emailResult = await sendEmail({
+        from: env.EMAIL_FROM,
+        to: email,
+        subject: emailTemplate.subject,
+        html: emailTemplate.html,
+        text: emailTemplate.text
+    })
+
+    if (!emailResult.success) {
+        await redis.del(redisKey)
+        logger.error({ email }, "Failed to send password reset email");
+        throw new AppError("AUTH_PASSWORD_OTP_FAILED", { field: "password" });
+    }
+    logger.info({ email, messageId: emailResult.messageId }, "Password reset email sent successfully");
+    return { email }
+}
 

@@ -32,7 +32,8 @@ export const AUTH_ERROR_CODES = {
     AUTH_LOGIN_FAILED: "AUTH_LOGIN_FAILED",
     AUTH_USER_NOT_VERIFIED: "AUTH_USER_NOT_VERIFIED",
     AUTH_SEND_MAGICLINK_FAILED: "AUTH_SEND_MAGICLINK_FAILED",
-    AUTH_MAGIC_LINK_INVALID_OR_EXPIRED: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED"
+    AUTH_MAGIC_LINK_INVALID_OR_EXPIRED: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED",
+    AUTH_PASSWORD_OTP_FAILED: "AUTH_PASSWORD_OTP_FAILED"
 } as const
 
 export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
@@ -167,6 +168,11 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
         code: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED",
         status: 401,
         message: "This magic link is invalid or has expired. Request a new one."
+    },
+    AUTH_PASSWORD_OTP_FAILED: {
+        code: "AUTH_PASSWORD_OTP_FAILED",
+        status: 500,
+        message: "We couldn't send your verification email. Please try again."
     }
 }
 export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES

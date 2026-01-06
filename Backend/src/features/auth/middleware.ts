@@ -202,3 +202,15 @@ export const validateVerifyMagicLink = async (c: Context, next: Next) => {
     c.set("verifyMagicLinkParams", payload)
     await next()
 }
+
+export const validateSendPasswordResetLink = async (c: Context, next: Next) => {
+    const { email } = await c.req.json<{ email: unknown }>()
+
+    if (!isValidEmail(email)) throw new AppError("AUTH_EMAIL_REQUIRED")
+
+    const payload = {
+        email: (email as string).trim().toLowerCase()
+    };
+    c.set("validatedPasswordParams", payload)
+    await next()
+}

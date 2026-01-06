@@ -6,6 +6,7 @@ import {
     resendVerificationOTPService,
     sendMagicLinkService,
     verifyMagicLinkService,
+    sendPasswordLinkService,
 } from "./service.js";
 import {
     LoginParamsVariables,
@@ -155,4 +156,14 @@ export const verifyMagicLinkController = async (c: Context<{ Variables: VerifyMa
             username: user.username
         }
     }, 200)
+}
+
+export const sendPasswordResetController = async (c: Context<{ Variables: { validatedPasswordParams: { email: string } } }>) => {
+    const { email } = c.get("validatedPasswordParams")
+    const user = await prisma.user.findUnique({ where: { email } })
+    if (!user) return c.json({ message: "Password reset link sent - check your inbox.", email }, 200)
+
+    const res = await sendPasswordLinkService(user, email)
+    return c.json({ message: "Password reset link sent - check your inbox.", email: res.email }, 200)
+
 }
