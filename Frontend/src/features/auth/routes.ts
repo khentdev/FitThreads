@@ -32,6 +32,12 @@ export const authRoutes: RouteRecordRaw[] = [
                 meta: { authPages: true },
                 component: () => import("../auth/views/VerifyOTP.vue"),
             },
+            {
+                path: 'forgot-password',
+                name: 'forgot-password',
+                meta: { authPages: true },
+                component: () => import("../auth/views/SendResetPasswordLinkView.vue"),
+            },
         ],
     },
 ]

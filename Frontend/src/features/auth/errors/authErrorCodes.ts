@@ -155,3 +155,16 @@ export type RefreshSessionErrorCode =
     | typeof RATELIMIT_SESSION_EXCEEDED
 
 export type SESSION_LOGOUT_FAILED = "SESSION_LOGOUT_FAILED"
+
+
+// Password Reset Error Codes
+export const AUTH_PASSWORD_OTP_FAILED = "AUTH_PASSWORD_OTP_FAILED"
+export const AUTH_RATE_LIMIT_PASSWORD_RESET_LINK = "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK"
+
+export type SendPasswordResetLinkErrorCode =
+    typeof AUTH_PASSWORD_OTP_FAILED
+    | typeof AUTH_USER_NOT_VERIFIED
+    | typeof AUTH_OTP_SEND_FAILED
+    | typeof AUTH_EMAIL_REQUIRED
+    | typeof AUTH_RATE_LIMIT_PASSWORD_RESET_LINK
+    | typeof AUTH_RATE_LIMIT_PASSWORD_RESET_LINK

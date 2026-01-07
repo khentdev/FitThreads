@@ -52,6 +52,17 @@ export type AuthRefreshSessionResponse = {
     user: User
 }
 
+export type AuthSendPasswordResetLinkResponse = {
+    message: string
+    email: string
+}
+
+// export type AuthVerifyPasswordResetLinkResponse = {
+//     message: string
+//     accessToken: string
+//     user: User
+// }
+
 export type AuthUserData = {
     login: AuthUserLoginResponse
     signup: AuthUserSignupResponse
