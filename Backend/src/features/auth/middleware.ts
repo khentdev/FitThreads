@@ -1,4 +1,5 @@
 import { Context, Next } from "hono";
+import { env } from "../../configs/env.js";
 import { AppError } from "../../errors/customError.js";
 import { getClientIp } from '../../lib/extractIp.js';
 import { hashData } from "../../lib/hash.js";
@@ -12,7 +13,6 @@ import type {
     VerifyEmailAndCreateSessionRequestBody,
     VerifyPasswordResetRequestBody,
 } from "./types.js";
-import { env } from "../../configs/env.js";
 
 
 export const validateSendOTP = async (c: Context, next: Next) => {
@@ -206,8 +206,27 @@ export const validateVerifyMagicLink = async (c: Context, next: Next) => {
 
 export const validateSendPasswordResetLink = async (c: Context, next: Next) => {
     const { email } = await c.req.json<{ email: unknown }>()
+    const clientIp = getClientIp(c)
 
     if (!isValidEmail(email)) throw new AppError("AUTH_EMAIL_REQUIRED")
+
+    await enforceRateLimit(c, {
+        endpoint: "password-reset-link",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK",
+        maxRequests: env.RATELIMIT_PASSWORD_RESET_LINK_IP_MAX,
+        timeWindow: `${env.RATELIMIT_PASSWORD_RESET_LINK_IP_WINDOW} s`
+    })
+
+    await enforceRateLimit(c, {
+        endpoint: "password-reset-link",
+        identifier: email as string,
+        identifierType: "email",
+        errorCode: "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK",
+        maxRequests: env.RATELIMIT_PASSWORD_RESET_LINK_EMAIL_MAX,
+        timeWindow: `${env.RATELIMIT_PASSWORD_RESET_LINK_EMAIL_WINDOW} s`
+    })
 
     const payload = {
         email: (email as string).trim().toLowerCase()
