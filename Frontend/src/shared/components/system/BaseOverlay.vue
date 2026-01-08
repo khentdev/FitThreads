@@ -1,5 +1,5 @@
 <template>
-    <RateLimitErrorOverlay v-if="authStore.systemErrors.rateLimitError" />
+    <RateLimitErrorOverlay v-if="authStore.systemErrors.sessionRateLimitError" />
     <SessionRefreshOverlay v-else-if="authStore.states.isRefreshingSession" />
     <SessionRefreshErrorOverlay v-else-if="authStore.systemErrors.sessionError" />
     <slot v-else></slot>
