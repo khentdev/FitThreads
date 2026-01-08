@@ -17,6 +17,7 @@ export const AUTH_ERROR_CODES = {
     AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP: "AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP",
     AUTH_RATE_LIMIT_MAGIC_LINK: "AUTH_RATE_LIMIT_MAGIC_LINK",
     AUTH_RATE_LIMIT_RESEND_OTP: "AUTH_RATE_LIMIT_RESEND_OTP",
+    AUTH_RATE_LIMIT_PASSWORD_RESET_LINK: "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK",
 
     // Service Layer - Business Logic Errors
     AUTH_USERNAME_ALREADY_TAKEN: "AUTH_USERNAME_ALREADY_TAKEN",
@@ -32,7 +33,11 @@ export const AUTH_ERROR_CODES = {
     AUTH_LOGIN_FAILED: "AUTH_LOGIN_FAILED",
     AUTH_USER_NOT_VERIFIED: "AUTH_USER_NOT_VERIFIED",
     AUTH_SEND_MAGICLINK_FAILED: "AUTH_SEND_MAGICLINK_FAILED",
-    AUTH_MAGIC_LINK_INVALID_OR_EXPIRED: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED"
+    AUTH_MAGIC_LINK_INVALID_OR_EXPIRED: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED",
+    AUTH_PASSWORD_OTP_FAILED: "AUTH_PASSWORD_OTP_FAILED",
+    AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED: "AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED",
+    AUTH_PASSWORD_RESET_PASSWORD_MISMATCH: "AUTH_PASSWORD_RESET_PASSWORD_MISMATCH",
+    AUTH_PASSWORD_RESET_FAILED: "AUTH_PASSWORD_RESET_FAILED"
 } as const
 
 export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
@@ -82,27 +87,32 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
     AUTH_RATE_LIMIT_LOGIN: {
         code: "AUTH_RATE_LIMIT_LOGIN",
         status: 429,
-        message: "Something went wrong on our end. Please try again later."
+        message: "Too many login attempts. Take a breather and try again later."
     },
     AUTH_RATE_LIMIT_SIGNUP: {
         code: "AUTH_RATE_LIMIT_SIGNUP",
         status: 429,
-        message: "Something went wrong on our end. Please try again later."
+        message: "Too many signup attempts. Please wait a while before trying again."
     },
     AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP: {
         code: "AUTH_RATE_LIMIT_SIGNUP_VERIFY_OTP",
         status: 429,
-        message: "Too many verification attempts. Please try again later."
+        message: "Too many verification attempts. Cool down and try again later."
     },
     AUTH_RATE_LIMIT_MAGIC_LINK: {
         code: "AUTH_RATE_LIMIT_MAGIC_LINK",
         status: 429,
-        message: "Something went wrong on our end. Please try again later."
+        message: "You've requested too many links. Check your inbox or wait a bit."
     },
     AUTH_RATE_LIMIT_RESEND_OTP: {
         code: "AUTH_RATE_LIMIT_RESEND_OTP",
         status: 429,
-        message: "Too many code requests. Please try again later."
+        message: "You've requested too many codes. Wait a few minutes before asking for another."
+    },
+    AUTH_RATE_LIMIT_PASSWORD_RESET_LINK: {
+        code: "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK",
+        status: 429,
+        message: "Too many password reset requests. Please wait a while."
     },
 
     // Service Layer - Business Logic Errors
@@ -167,6 +177,26 @@ export const AUTH_ERROR_DEF: Record<AuthErrorCode, ErrorDefinitions> = {
         code: "AUTH_MAGIC_LINK_INVALID_OR_EXPIRED",
         status: 401,
         message: "This magic link is invalid or has expired. Request a new one."
+    },
+    AUTH_PASSWORD_OTP_FAILED: {
+        code: "AUTH_PASSWORD_OTP_FAILED",
+        status: 500,
+        message: "We couldn't send your verification email. Please try again."
+    },
+    AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED: {
+        code: "AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED",
+        status: 401,
+        message: "This password reset link is invalid or has expired. Request a new one."
+    },
+    AUTH_PASSWORD_RESET_PASSWORD_MISMATCH: {
+        code: "AUTH_PASSWORD_RESET_PASSWORD_MISMATCH",
+        status: 400,
+        message: "New password and confirmation do not match."
+    },
+    AUTH_PASSWORD_RESET_FAILED: {
+        code: "AUTH_PASSWORD_RESET_FAILED",
+        status: 500,
+        message: "We couldn't reset your password right now. Please try again in a moment."
     }
 }
 export type AuthErrorCode = keyof typeof AUTH_ERROR_CODES

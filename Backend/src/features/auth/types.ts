@@ -67,3 +67,17 @@ export type VerifyMagicLinkParams = {
 export type VerifyMagicLinkParamsVariables = {
     verifyMagicLinkParams: VerifyMagicLinkParams;
 }
+
+export type VerifyPasswordResetRequestBody = {
+    token: unknown;
+    newPassword: unknown;
+    confirmPassword: unknown
+}
+export type VerifyPasswordResetParams = {
+    token: string,
+    deviceId: string,
+    confirmPassword: string
+}
+export type VerifyPasswordResetParamsVariables = {
+    verifyPasswordResetParams: VerifyPasswordResetParams
+}

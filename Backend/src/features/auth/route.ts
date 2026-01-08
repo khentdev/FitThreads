@@ -7,6 +7,8 @@ import {
     resendVerificationOTPController,
     sendMagicLinkController,
     verifyMagicLinkController,
+    sendPasswordResetController,
+    verifyPasswordResetController,
 } from "./controller.js";
 import {
     validateLoginAccount,
@@ -15,6 +17,8 @@ import {
     validateResendOTP,
     validateSendMagicLink,
     validateVerifyMagicLink,
+    validateSendPasswordResetLink,
+    validateVerifyPasswordResetToken,
 } from "./middleware.js";
 
 const authRouter = new Hono().basePath("/auth")
@@ -27,5 +31,6 @@ authRouter
     .post("/verify/resend-otp", validateResendOTP, resendVerificationOTPController)
     .post("/magic-link", validateSendMagicLink, sendMagicLinkController)
     .post("/magic-link/verify", validateVerifyMagicLink, verifyMagicLinkController)
-
+    .post("/password", validateSendPasswordResetLink, sendPasswordResetController)
+    .post("/password/verify", validateVerifyPasswordResetToken, verifyPasswordResetController)
 export default authRouter;

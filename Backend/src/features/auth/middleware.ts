@@ -1,4 +1,5 @@
 import { Context, Next } from "hono";
+import { env } from "../../configs/env.js";
 import { AppError } from "../../errors/customError.js";
 import { getClientIp } from '../../lib/extractIp.js';
 import { hashData } from "../../lib/hash.js";
@@ -10,8 +11,8 @@ import type {
     ResendOTPRequestBody,
     SendOTPRequestBody,
     VerifyEmailAndCreateSessionRequestBody,
+    VerifyPasswordResetRequestBody,
 } from "./types.js";
-import { env } from "../../configs/env.js";
 
 
 export const validateSendOTP = async (c: Context, next: Next) => {
@@ -200,5 +201,57 @@ export const validateVerifyMagicLink = async (c: Context, next: Next) => {
         deviceId: hashData(fingerprint as string)
     }
     c.set("verifyMagicLinkParams", payload)
+    await next()
+}
+
+export const validateSendPasswordResetLink = async (c: Context, next: Next) => {
+    const { email } = await c.req.json<{ email: unknown }>()
+    const clientIp = getClientIp(c)
+
+    if (!isValidEmail(email)) throw new AppError("AUTH_EMAIL_REQUIRED")
+
+    await enforceRateLimit(c, {
+        endpoint: "password-reset-link",
+        identifier: clientIp,
+        identifierType: "ip",
+        errorCode: "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK",
+        maxRequests: env.RATELIMIT_PASSWORD_RESET_LINK_IP_MAX,
+        timeWindow: `${env.RATELIMIT_PASSWORD_RESET_LINK_IP_WINDOW} s`
+    })
+
+    await enforceRateLimit(c, {
+        endpoint: "password-reset-link",
+        identifier: email as string,
+        identifierType: "email",
+        errorCode: "AUTH_RATE_LIMIT_PASSWORD_RESET_LINK",
+        maxRequests: env.RATELIMIT_PASSWORD_RESET_LINK_EMAIL_MAX,
+        timeWindow: `${env.RATELIMIT_PASSWORD_RESET_LINK_EMAIL_WINDOW} s`
+    })
+
+    const payload = {
+        email: (email as string).trim().toLowerCase()
+    };
+    c.set("validatedPasswordParams", payload)
+    await next()
+}
+
+export const validateVerifyPasswordResetToken = async (c: Context, next: Next) => {
+    const { token, newPassword, confirmPassword } = await c.req.json<VerifyPasswordResetRequestBody>()
+    const fingerprint = c.req.header("X-Fingerprint");
+
+    if (!isMinLength(newPassword, 8))
+        throw new AppError("AUTH_PASSWORD_MIN_LENGTH", { field: "password" });
+
+    if (newPassword !== confirmPassword) throw new AppError("AUTH_PASSWORD_RESET_PASSWORD_MISMATCH", { field: "password" })
+
+    if (!notEmpty(token)) throw new AppError("AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED", { field: "token" })
+    if (!isValidDeviceFingerprint(fingerprint)) throw new AppError("AUTH_INVALID_DEVICE_FINGERPRINT", { field: "device_fingerprint" })
+
+    const payload = {
+        token: (token as string).trim(),
+        deviceId: hashData(fingerprint as string),
+        confirmPassword: (confirmPassword as string).trim()
+    }
+    c.set("verifyPasswordResetParams", payload)
     await next()
 }
