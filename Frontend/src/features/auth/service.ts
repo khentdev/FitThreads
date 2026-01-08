@@ -1,6 +1,6 @@
 import { axiosInstance } from "../../core/api/axiosConfig";
 import { getTypedResponse } from "../../shared/types/types";
-import type { LoginCredentials, SignupCredentials, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthResendOTPResponse, AuthSendMagicLinkResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse, AuthSendPasswordResetLinkResponse } from "./types";
+import type { LoginCredentials, SignupCredentials, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyOTPResponse, AuthResendOTPResponse, AuthSendMagicLinkResponse, AuthVerifyMagicLinkResponse, AuthRefreshSessionResponse, AuthSendPasswordResetLinkResponse, AuthVerifyPasswordResetTokenResponse, AuthVerifyPasswordResetTokenParams } from "./types";
 
 export const authService = {
     login: async (credentials: LoginCredentials) => {
@@ -39,5 +39,9 @@ export const authService = {
         const response = await axiosInstance.post('/auth/password', { email })
         return getTypedResponse<AuthSendPasswordResetLinkResponse>(response)
     },
+    verifyPasswordResetToken: async ({ token, newPassword, confirmPassword }: AuthVerifyPasswordResetTokenParams) => {
+        const response = await axiosInstance.post('/auth/password/verify', { token, newPassword, confirmPassword })
+        return getTypedResponse<AuthVerifyPasswordResetTokenResponse>(response)
+    }
 
 }

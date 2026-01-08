@@ -38,6 +38,18 @@ export const authRoutes: RouteRecordRaw[] = [
                 meta: { authPages: true },
                 component: () => import("../auth/views/SendResetPasswordLinkView.vue"),
             },
+            {
+                path: 'password-reset',
+                name: 'password-reset',
+                meta: { authPages: true },
+                component: () => import("../auth/views/PasswordResetView.vue"),
+                beforeEnter: (to, _, next) => {
+                    if (!to.query["token"])
+                        return next({ name: 'forgot-password' })
+                    next()
+                }
+            },
         ],
     },
+
 ]

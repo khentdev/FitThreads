@@ -8,7 +8,7 @@ import { errorHandler } from '../../../core/errors/errorHandler'
 import { useToast } from '../../../shared/composables/toast/useToast'
 import * as AUTH_CODES from '../errors/authErrorCodes'
 import { authService } from '../service'
-import type { AuthContext, AuthRefreshSessionResponse, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyMagicLinkResponse, AuthVerifyOTPResponse } from '../types'
+import type { AuthContext, AuthRefreshSessionResponse, AuthUserLoginResponse, AuthUserSignupResponse, AuthVerifyMagicLinkResponse, AuthVerifyOTPResponse, AuthVerifyPasswordResetTokenParams, AuthVerifyPasswordResetTokenResponse } from '../types'
 
 export const useAuthStore = defineStore('auth', () => {
     const { toast } = useToast()
@@ -26,13 +26,13 @@ export const useAuthStore = defineStore('auth', () => {
         isRefreshingSession: false,
         sessionInitialized: false,
         isLoggingOut: false,
-        isSendingResetPasswordLink: false
+        isSendingResetPasswordLink: false,
+        isVerifyingResetPasswordToken: false
     })
 
     const systemErrors = reactive({
         sessionError: false,
         sessionRateLimitError: false,
-        passwordResetSendLinkError: false
     })
 
     const errors = reactive({
@@ -41,6 +41,7 @@ export const useAuthStore = defineStore('auth', () => {
         passwordError: '',
         formError: '',
         otpError: '',
+        passwordResetError: ''
     })
 
 
@@ -50,9 +51,10 @@ export const useAuthStore = defineStore('auth', () => {
     function setUser(type: 'verifyOTP', data: AuthVerifyOTPResponse): void
     function setUser(type: 'magicLink', data: AuthVerifyMagicLinkResponse): void
     function setUser(type: 'refreshSession', data: AuthRefreshSessionResponse): void
+    function setUser(type: 'passwordReset', data: AuthVerifyPasswordResetTokenResponse): void
     function setUser(
-        type: 'login' | 'signup' | 'verifyOTP' | 'magicLink' | 'refreshSession',
-        data: AuthUserLoginResponse | AuthUserSignupResponse | AuthVerifyOTPResponse | AuthVerifyMagicLinkResponse | AuthRefreshSessionResponse
+        type: 'login' | 'signup' | 'verifyOTP' | 'magicLink' | 'refreshSession' | 'passwordReset',
+        data: AuthUserLoginResponse | AuthUserSignupResponse | AuthVerifyOTPResponse | AuthVerifyMagicLinkResponse | AuthRefreshSessionResponse | AuthVerifyPasswordResetTokenResponse
     ): void {
         user.value = { type, userData: data } as AuthContext
     }
@@ -77,6 +79,7 @@ export const useAuthStore = defineStore('auth', () => {
         errors.passwordError = ''
         errors.formError = ''
         errors.otpError = ''
+        errors.passwordResetError = ''
     }
 
     const loginUser = async (username: string, password: string) => {
@@ -421,6 +424,43 @@ export const useAuthStore = defineStore('auth', () => {
         }
     }
 
+    const verifyPasswordResetToken = async ({ token, newPassword, confirmPassword }: AuthVerifyPasswordResetTokenParams) => {
+        if (states.isVerifyingResetPasswordToken) return
+        clearErrors()
+        states.isVerifyingResetPasswordToken = true
+        try {
+            const res = await authService.verifyPasswordResetToken({ token, newPassword, confirmPassword })
+            setUser("passwordReset", res)
+            // I set session init already - because user is already logged in. So it doesn't trigger the refreshSession.
+            states.sessionInitialized = true
+            toast.success(res.message)
+            router.push({ name: "feed" })
+            return { success: true, data: res }
+        } catch (err) {
+            const axiosErr = err as AxiosError<ErrorResponse<AUTH_CODES.VerifyPasswordResetTokenErrorCode>>
+            const { message, code, type } = errorHandler<AUTH_CODES.VerifyPasswordResetTokenErrorCode>(axiosErr)
+
+            if (type === "offline") errors.formError = message
+            if (type === "timeout") errors.formError = message
+            if (type === "server_error") errors.formError = message
+            if (type === "unreachable") errors.formError = message
+
+            if (code === AUTH_CODES.AUTH_PASSWORD_MIN_LENGTH) errors.passwordResetError = message
+            if (code === AUTH_CODES.AUTH_PASSWORD_RESET_PASSWORD_MISMATCH) errors.passwordResetError = message
+            if (code === AUTH_CODES.AUTH_PASSWORD_RESET_LINK_INVALID_OR_EXPIRED) errors.formError = message
+            if (code === AUTH_CODES.AUTH_INVALID_DEVICE_FINGERPRINT) errors.formError = message
+
+            if (code === AUTH_CODES.AUTH_USER_NOT_FOUND) {
+                toast.error("Account not found. Please log in.", { title: "Account not found" })
+                return { success: false, redirect: "signup" }
+            }
+            if (code === AUTH_CODES.AUTH_PASSWORD_RESET_FAILED) errors.passwordResetError = message
+            return { success: false, redirect: null }
+        } finally {
+            states.isVerifyingResetPasswordToken = false
+        }
+    }
+
     return {
         hasAuthenticated,
         getUsername,
@@ -439,6 +479,7 @@ export const useAuthStore = defineStore('auth', () => {
         states,
         systemErrors,
         logoutSession,
-        sendResetPasswordLink
+        sendResetPasswordLink,
+        verifyPasswordResetToken
     }
 })

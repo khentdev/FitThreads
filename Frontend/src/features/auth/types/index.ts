@@ -56,12 +56,16 @@ export type AuthSendPasswordResetLinkResponse = {
     message: string
     email: string
 }
-
-// export type AuthVerifyPasswordResetLinkResponse = {
-//     message: string
-//     accessToken: string
-//     user: User
-// }
+export type AuthVerifyPasswordResetTokenParams = {
+    token: string
+    newPassword: string,
+    confirmPassword: string
+}
+export type AuthVerifyPasswordResetTokenResponse = {
+    message: string
+    accessToken: string
+    user: User
+}
 
 export type AuthUserData = {
     login: AuthUserLoginResponse
@@ -77,4 +81,4 @@ export type AuthContext =
     | { type: 'verifyOTP'; userData: AuthVerifyOTPResponse }
     | { type: 'magicLink'; userData: AuthVerifyMagicLinkResponse }
     | { type: 'refreshSession'; userData: AuthRefreshSessionResponse }
-    | null
+    | { type: "passwordReset"; userData: AuthVerifyPasswordResetTokenResponse } | null
