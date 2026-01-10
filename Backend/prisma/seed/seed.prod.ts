@@ -8,16 +8,24 @@ import bcrypt from "bcrypt";
 async function seedProduction() {
     console.log("Checking production seed status...");
 
-    const adminExists = await prisma.user.findUnique({
-        where: { email: "khentplays@gmail.com" },
-    });
+    try {
+        console.log("Querying for admin user: khentplays@gmail.com");
+        const adminExists = await prisma.user.findUnique({
+            where: { email: "khentplays@gmail.com" },
+        });
 
-    if (adminExists) {
-        console.log("Production seed already executed. Skipping.");
-        return;
+        console.log(`Admin exists check result: ${adminExists ? 'FOUND' : 'NOT FOUND'}`);
+
+        if (adminExists) {
+            console.log("Production seed already executed. Skipping.");
+            return;
+        }
+
+        console.log("Starting production seed...");
+    } catch (error) {
+        console.error("Error checking admin user:", error);
+        throw error;
     }
-
-    console.log("Starting production seed...");
 
     const hashedPassword = await bcrypt.hash("secure_admin_password_change_me", 10);
     const admin = await prisma.user.create({
