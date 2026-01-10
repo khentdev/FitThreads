@@ -15,17 +15,16 @@ type CookieParams = {
     value: string;
     options: Pick<CookieOptionsParams, "maxAge">;
 };
-
+const isProd = () => env.NODE_ENV === "production"
 const createCookieOptions = ({ context, maxAge }: CookieOptionsParams): CookieOptions => {
-    const isProd = env.NODE_ENV === "production"
     return {
-        domain: ".fitthreads.blog",
+        domain: isProd() ? ".fitthreads.blog" : undefined,
         path: "/",
-        secure: isProd,
+        secure: isProd(),
         httpOnly: context === "auth",
         sameSite: "lax",
         maxAge,
-        prefix: isProd ? "secure" : undefined,
+        prefix: isProd() ? "secure" : undefined,
     }
 }
 
@@ -36,8 +35,8 @@ export const setCSRFCookie = ({ c, name, value, options }: CookieParams) =>
 
 export const getCookieValue = (c: Context, name: any) => getCookie(c, name);
 export const deleteAuthCookie = (c: Context, name: any) => deleteCookie(c, name, {
-  path: "/",
-  domain: ".fitthreads.blog",
-  secure: env.NODE_ENV === "production",
-  sameSite: "lax",
+    path: "/",
+    domain: isProd() ? ".fitthreads.blog" : undefined,
+    secure: isProd(),
+    sameSite: "lax",
 })

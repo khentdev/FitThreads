@@ -31,7 +31,7 @@ const generateAndSendOTP = async (userId: string, email: string) => {
 
     const template = emailTemplates.signupOTP(otp);
     const emailResult = await sendEmail({
-        from: `FitThreads <no-reply@${env.EMAIL_FROM}>`,
+        from: env.EMAIL_FROM,
         to: email,
         subject: template.subject,
         html: template.html,

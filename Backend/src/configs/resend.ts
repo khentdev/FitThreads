@@ -1,6 +1,6 @@
 import { Resend } from "resend";
-import { env } from "./env.js";
 import logger from "../lib/logger.js";
+import { env } from "./env.js";
 
 let resendClient: Resend | null = null;
 
@@ -24,10 +24,11 @@ export const sendEmail = async (params: {
     html: string;
     text?: string;
 }): Promise<{ success: boolean; messageId?: string; error?: string }> => {
-
+    const isProd = env.NODE_ENV === "production";
     const client = getResendClient();
+    
     const result = await client.emails.send({
-        from: params.from,
+        from: isProd ? `FitThreads <no-reply@${params.from}>` : params.from,
         to: params.to,
         subject: params.subject,
         html: params.html,
