@@ -40,4 +40,15 @@ While some interaction logic is similar, all features are independently designed
 - Render (Backend)
 - Neon (Database)
 
-> Status: MVP in progress. Features and implementation details may evolve.
+> Status: **MVP Completed**. Active development continues.
+>
+> *This project is being maintained and evolved indefinitely.*
+
+## Key Learnings
+- **Security & Auth**: Implemented secure OTP flows, multi-layered rate limiting (IP/User/Email) to prevent abuse, and strict cookie configuration (SameSite/Secure).
+- **Performance**: Mastered optimistic UI updates and frontend caching for instant interactions. Optimized PostgreSQL with Full Text Search and targeted indexing.
+- **Testing & Quality**: Adopted a "Test First" strategy using Vitest to catch logic errors early. Standardized error handling with mapped error codes.
+- **DevOps & DX**: Dockerized the local development environment for consistency.
+- **System Design**: Learned to architect feature requirements and database schemas upfront, ensuring efficient data flows and scalable relationships.
+- **UI/UX**: Focused on semantic color theming and polished user experiences.
+
