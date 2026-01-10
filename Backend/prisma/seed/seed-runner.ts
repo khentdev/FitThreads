@@ -11,14 +11,5 @@ if (!shouldRunSeed) {
     process.exit(0);
 }
 
-console.log("RUN_PROD_SEED=true detected. Checking if seed needed...");
-
-import("./seed.prod.js")
-    .then(() => {
-        console.log("Seed runner completed successfully");
-        process.exit(0);
-    })
-    .catch((error) => {
-        console.error("Seed runner failed:", error);
-        process.exit(1);
-    });
+console.log("RUN_PROD_SEED=true detected. Running production seed...");
+import "./seed.prod.js";
