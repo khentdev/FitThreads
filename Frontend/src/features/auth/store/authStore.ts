@@ -71,7 +71,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
     const hasAuthenticated = computed(() => {
         const type = user.value?.type
-        return type === 'verifyOTP' || type === 'magicLink' || type === 'refreshSession' || type === "login"
+        return type === 'verifyOTP' || type === 'magicLink' || type === 'refreshSession' || type === "login" || type === "passwordReset"
     })
     const clearErrors = () => {
         errors.usernameError = ''
