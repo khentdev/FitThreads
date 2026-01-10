@@ -3,17 +3,17 @@ import { AppError } from "../../errors/customError.js";
 import { getClientIp } from "../../lib/extractIp.js";
 import { enforceRateLimit } from "../../lib/rateLimit.js";
 import { env } from "../../configs/env.js";
+import { isValidUsername } from "../../lib/validation.js";
 
 export const validateUsernameParam = async (c: Context, next: Next) => {
     const username = c.req.param("username")
-    const usernameRegex = /^[a-z0-9_]{3,30}$/
     const clientIp = getClientIp(c)
 
-    if (!username || !usernameRegex.test(username)) {
+    if (!isValidUsername(username))
         throw new AppError("INVALID_USERNAME_FORMAT", {
             field: "username"
         });
-    }
+
     await enforceRateLimit(c, {
         endpoint: "profile/get-user-profile",
         identifier: clientIp,
