@@ -37,14 +37,24 @@
 </template>
 
 <script setup lang="ts">
-    import { Home, Search, Plus, Settings, User } from 'lucide-vue-next'
-    import { useAuthStore } from '../../auth/store/authStore';
-    import { computed, ref, watch } from 'vue';
-    import { useRoute } from 'vue-router';
-    import { useLoginModal } from '../../../shared/composables/useLoginModal';
+    import { Home, Plus, Search, Settings, User } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useLoginModal } from '../../../shared/composables/useLoginModal';
+import { useScroll } from '../../../shared/composables/useScroll';
+import { useAuthStore } from '../../auth/store/authStore';
+import { useMainFeed } from '../composables';
+
+const query = useMainFeed()
 
     const authStore = useAuthStore()
     const route = useRoute()
+    
+    const emit = defineEmits<{
+        (e: 'scrollToTop'): void
+    }>()
+
+    const { getScrollPosition } = useScroll({ scrollKey: "feedScrollPosition" })
 
     const isOwnProfile = ref(false)
     watch([() => authStore.getUsername, () => route.params['username']], ([username, routeUsername]) => {
@@ -61,7 +71,21 @@
         param?: any;
     }
 
+/**
+ * The flow: On Click
+ * feed: if scrollposition is greater than zero -> scroll on top
+ * feed: if scrollposition is zero -> refetch the feed
+ */
     const handleNavigate = (link: NavigationLink, navigate: () => void) => {
+        if (link.name === 'feed' && route.name === 'feed') {
+            const scrollPos = Number(getScrollPosition())
+            if (scrollPos === 0 && !query.isRefetching.value) {
+                query.refetch()
+            } else if (scrollPos > 0) {
+                emit('scrollToTop')
+            }
+        }
+
         const requiresAuth = link.name === "profile"
         if (requiresAuth && !authStore.hasAuthenticated) {
             const { openModal: openLoginModal } = useLoginModal()
