@@ -2,7 +2,8 @@ import { Context } from "hono";
 import { rateLimit, RateLimitParams } from "../configs/redis.js";
 import { AppError } from "../errors/customError.js";
 import { ErrorCodes } from "../errors/index.js";
-
+import { hashData } from "./hash.js";
+import logger from "./logger.js";
 
 
 export type RateLimitMiddlewareParams = {
@@ -33,6 +34,15 @@ export const enforceRateLimit = async (c: Context, { endpoint, identifier, ident
 
     const retryAfter = Math.ceil((reset - Date.now()) / 1000)
     if (!success) {
+        logger.warn({
+            event: "rate_limit_exceeded",
+            endpoint,
+            identifierType,
+            identifier: identifierType === "ip" ? identifier : hashData(identifier),
+            limit,
+            retryAfter
+        });
+
         c.header("Retry-After", retryAfter.toString());
         throw new AppError(errorCode, {
             data: {

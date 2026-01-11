@@ -15,8 +15,9 @@ const errorLogger = (err: Error, c: Context) =>
         path: c.req.path,
         method: c.req.method,
         error: {
-            name: err?.name,
-            message: err?.message,
+            code: (err as AppError).code ?? "SERVER_ERROR",
+            name: err.name,
+            message: err.message,
             ...(err?.cause ? { cause: err.cause } : {}),
             stack: stackLimit(err),
         },
