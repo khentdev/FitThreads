@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col px-0">
-        <div v-for="i in count" :key="i" class="p-5 border-b border-border-muted bg-surface-app rounded-xl animate-pulse">
+        <div v-for="i in count" :key="i" class="p-5 border-b border-border-muted bg-surface-app animate-pulse">
             <!-- Header: Username and Date -->
             <div class="flex gap-3 mb-3">
                 <div class="flex flex-col gap-1">
