@@ -110,23 +110,25 @@
           </button>
         </div>
       </div>
+      <template v-if="!query.isError.value" key="templateNoError">
+        <EmptyState
+          key="noPageAndHasResultsState"
+          v-if="!query.hasNextPage.value && allPosts.length > 0"
+          title="You're all caught up!"
+          message="That's all the posts for now. Check back later for more fitness thoughts."
+          :show-icon="false"
+        />
+        <button
+          key="hasNextPage"
+          v-if="query.hasNextPage.value"
+          @click="handleLoadMore"
+          :disabled="!query.hasNextPage.value || query.isFetchingNextPage.value"
+          class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ query.isFetchingNextPage.value ? "Loading..." : "Load More" }}
+        </button>
+      </template>
     </TransitionGroup>
-    <template v-if="!query.isError.value">
-      <EmptyState
-        v-if="!query.hasNextPage.value && allPosts.length > 0"
-        title="You're all caught up!"
-        message="That's all the posts for now. Check back later for more fitness thoughts."
-        :show-icon="false"
-      />
-      <button
-        v-if="query.hasNextPage.value"
-        @click="handleLoadMore"
-        :disabled="!query.hasNextPage.value || query.isFetchingNextPage.value"
-        class="px-6 py-3 mx-4 mt-4 font-medium rounded-xl border transition-colors border-border-muted bg-surface-app text-text-default hover:bg-surface-elevated disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {{ query.isFetchingNextPage.value ? "Loading..." : "Load More" }}
-      </button>
-    </template>
   </FeedViewLayout>
 </template>
 <script setup lang="ts">
