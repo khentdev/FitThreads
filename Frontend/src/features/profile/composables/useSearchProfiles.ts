@@ -18,6 +18,7 @@ export const useSearchProfiles = (searchQuery: MaybeRefOrGetter<string>,
         initialPageParam: "",
         refetchOnWindowFocus: false,
         enabled: () => toValue(searchQuery).trim().length > 0 && toValue(activeTab) === "profile",
+        staleTime: Infinity,
     })
 
     const retryCountdown = ref(0)
