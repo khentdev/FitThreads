@@ -16,7 +16,7 @@ export const useUserFavorites = (username: MaybeRefOrGetter<string>) => {
             limit: 5,
             username: toValue(username),
         }),
-        staleTime: 60 * 1000,
+        staleTime: Infinity,
         initialPageParam: "",
         getNextPageParam: (lastPage) => lastPage && lastPage.nextCursor,
         refetchOnWindowFocus: false,
