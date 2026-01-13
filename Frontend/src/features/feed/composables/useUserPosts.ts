@@ -20,7 +20,7 @@ export const useUserPosts = (
             username: toValue(username),
             sortBy: toValue(sortBy)
         }),
-        staleTime: 60 * 1000,
+        staleTime: Infinity,
         initialPageParam: "",
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         refetchOnWindowFocus: false,

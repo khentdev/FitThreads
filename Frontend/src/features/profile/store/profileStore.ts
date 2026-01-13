@@ -43,7 +43,7 @@ export const useProfileStore = defineStore('profile', () => {
         queryFn: () => profileService.getProfile(currentViewedUsername.value!),
         enabled: () => !!currentViewedUsername.value,
         retry: false,
-        staleTime: 1000 * 60 * 5,
+        staleTime: Infinity,
     });
 
     const retryFetchProfile = () => {

@@ -32,6 +32,7 @@ export const useSearchFeed = (
             const isEnabled = options.enabled !== undefined ? toValue(options.enabled) : true
             return isSearchValid && isEnabled
         },
+        staleTime: Infinity,
     })
     const retryCountdown = ref(0)
     let countdownInterval: ReturnType<typeof setInterval> | null = null
